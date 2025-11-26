@@ -67,8 +67,9 @@ const CandidatesListModal: React.FC<CandidatesListModalProps> = ({
   const handleDelete = async (id: string, name: string) => {
     // Check if candidate has votes
     const candidate = candidates.find(c => c.id === id);
-    if (candidate && (candidate._count?.votes || 0) > 0) {
-      toast.error(`Cannot delete "${name}". They have ${candidate._count.votes} vote(s). Delete votes first.`);
+    const voteCount = candidate?._count?.votes || 0;
+    if (candidate && voteCount > 0) {
+      toast.error(`Cannot delete "${name}". They have ${voteCount} vote(s). Delete votes first.`);
       return;
     }
 
@@ -261,7 +262,7 @@ const CandidatesListModal: React.FC<CandidatesListModalProps> = ({
                           size="sm"
                           onClick={() => handleDelete(candidate.id, candidate.name)}
                           disabled={deleting === candidate.id || deletingAll}
-                          title={(candidate._count?.votes || 0) > 0 ? `Cannot delete: Has ${candidate._count.votes} vote(s)` : 'Delete this candidate'}
+                          title={(candidate._count?.votes || 0) > 0 ? `Cannot delete: Has ${candidate._count?.votes || 0} vote(s)` : 'Delete this candidate'}
                         >
                           {deleting === candidate.id ? 'Deleting...' : 'Delete'}
                         </Button>
