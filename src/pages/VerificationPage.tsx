@@ -47,24 +47,80 @@ const VerificationPage: React.FC = () => {
       // Show success message based on what was sent
       const sentVia = response.sentVia || [];
       if (sentVia.includes('email') && sentVia.includes('SMS')) {
-        toast.success('OTP sent to your email and phone! Check both.');
+        toast.success('OTP sent to your email and phone! Check both.', { duration: 4000 });
       } else if (sentVia.includes('email')) {
-        toast.success('OTP sent to your email! Check your inbox.');
+        toast.success('OTP sent to your email! Check your inbox.', { duration: 4000 });
       } else if (sentVia.includes('SMS')) {
-        toast.success('OTP sent to your phone! Check your SMS.');
+        toast.success('OTP sent to your phone! Check your SMS.', { duration: 4000 });
       } else {
-        toast.success('OTP sent successfully!');
+        toast.success('OTP sent successfully!', { duration: 4000 });
       }
       
-      // Show warning if some methods failed
-      if (response.warnings) {
-        toast.error(response.warnings.message, { duration: 5000 });
+      // Show warning if some methods failed (but don't block the flow)
+      if (response.warnings && sentVia.length > 0) {
+        toast.error(response.warnings.message, { 
+          duration: 5000,
+          icon: '⚠️'
+        });
       }
       
-      setStep('verify');
-      verifyOTPForm.setValue('regNo', data.regNo);
+      // Always proceed to verify step if at least one method succeeded
+      if (sentVia.length > 0) {
+        setStep('verify');
+        verifyOTPForm.setValue('regNo', data.regNo);
+        // Auto-focus OTP input after a short delay
+        setTimeout(() => {
+          const otpInput = document.getElementById('otp');
+          if (otpInput) {
+            otpInput.focus();
+          }
+        }, 300);
+      } else {
+        // Only show error if both methods failed
+        toast.error('Failed to send OTP. Please try again or contact support.');
+      }
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to send OTP');
+      const errorMessage = err.response?.data?.error || 'Failed to send OTP';
+      const errorHint = err.response?.data?.hint;
+      
+      // If we got a response with sentVia (partial success), proceed to verify
+      if (err.response?.data?.sentVia && err.response.data.sentVia.length > 0) {
+        const sentVia = err.response.data.sentVia;
+        setRegNo(data.regNo);
+        setOtpSent(true);
+        
+        // Show success for what worked
+        if (sentVia.includes('SMS')) {
+          toast.success('OTP sent to your phone! Check your SMS.', { duration: 4000 });
+        } else if (sentVia.includes('email')) {
+          toast.success('OTP sent to your email! Check your inbox.', { duration: 4000 });
+        }
+        
+        // Show warning about what failed
+        if (err.response?.data?.warnings) {
+          toast.error(err.response.data.warnings.message, { 
+            duration: 5000,
+            icon: '⚠️'
+          });
+        }
+        
+        setStep('verify');
+        verifyOTPForm.setValue('regNo', data.regNo);
+        setTimeout(() => {
+          const otpInput = document.getElementById('otp');
+          if (otpInput) {
+            otpInput.focus();
+          }
+        }, 300);
+      } else {
+        // Both methods failed - show error and don't proceed
+        toast.error(errorMessage, { 
+          duration: 6000
+        });
+        if (errorHint) {
+          toast.error(errorHint, { duration: 5000 });
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -166,15 +222,15 @@ const VerificationPage: React.FC = () => {
                       <svg className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0 animate-bounce-slow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <div>
+                      <div className="flex-1">
                         <p className="text-sm font-medium text-green-800">
-                          OTP sent to your email and phone
+                          OTP sent successfully! ✅
                         </p>
                         <p className="text-xs text-green-600 mt-1">
                           Registration: <strong>{regNo}</strong>
                         </p>
                         <p className="text-xs text-green-600 mt-1">
-                          Check both your email inbox and SMS messages
+                          Enter the 6-digit code you received below
                         </p>
                       </div>
                     </div>
