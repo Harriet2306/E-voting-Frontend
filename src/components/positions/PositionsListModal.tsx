@@ -5,6 +5,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { positionsAPI } from '../../services/api';
 import { toast } from 'react-hot-toast';
+import { formatDate } from '../../lib/utils';
 
 interface Position {
   id: string;
@@ -156,13 +157,13 @@ const PositionsListModal: React.FC<PositionsListModalProps> = ({ isOpen, onClose
                       <div className="text-xs text-muted-foreground space-y-1">
                         <p>
                           <strong>Nomination:</strong>{' '}
-                          {new Date(position.nominationOpens).toLocaleString()} -{' '}
-                          {new Date(position.nominationCloses).toLocaleString()}
+                          {formatDate(position.nominationOpens)} -{' '}
+                          {formatDate(position.nominationCloses)}
                         </p>
                         <p>
                           <strong>Voting:</strong>{' '}
-                          {new Date(position.votingOpens).toLocaleString()} -{' '}
-                          {new Date(position.votingCloses).toLocaleString()}
+                          {formatDate(position.votingOpens)} -{' '}
+                          {formatDate(position.votingCloses)}
                         </p>
                       </div>
                     </div>
@@ -234,7 +235,7 @@ const PositionsListModal: React.FC<PositionsListModalProps> = ({ isOpen, onClose
                     onChange={(e) => setNominationHours(e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Current closes: {new Date(selectedPosition.nominationCloses).toLocaleString()}
+                    Current closes: {formatDate(selectedPosition.nominationCloses)}
                   </p>
                 </div>
                 <div className="grid gap-2">
@@ -249,7 +250,7 @@ const PositionsListModal: React.FC<PositionsListModalProps> = ({ isOpen, onClose
                     onChange={(e) => setVotingHours(e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Current closes: {new Date(selectedPosition.votingCloses).toLocaleString()}
+                    Current closes: {formatDate(selectedPosition.votingCloses)}
                   </p>
                 </div>
               </div>
