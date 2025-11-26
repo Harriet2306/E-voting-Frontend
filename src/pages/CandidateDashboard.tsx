@@ -180,15 +180,38 @@ const CandidateDashboard: React.FC = () => {
                         key={nomination.id}
                         className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                       >
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <h3 className="font-semibold text-lg">{nomination.position.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {nomination.name} • {nomination.program}
-                            </p>
+                        <div className="flex gap-4">
+                          {/* Photo */}
+                          <div className="flex-shrink-0">
+                            {nomination.photoUrl ? (
+                              <img
+                                src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${nomination.photoUrl}`}
+                                alt={nomination.name}
+                                className="w-20 h-20 object-cover rounded-lg border shadow-sm"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nomination.name)}&background=6366f1&color=fff&size=128&bold=true`;
+                                }}
+                              />
+                            ) : (
+                              <div className="w-20 h-20 rounded-lg border shadow-sm bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
+                                <span className="text-2xl font-bold text-white">
+                                  {nomination.name.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                            )}
                           </div>
-                          {getStatusBadge(nomination.status)}
-                        </div>
+                          
+                          {/* Details */}
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <h3 className="font-semibold text-lg">{nomination.position.name}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                  {nomination.name} • {nomination.program}
+                                </p>
+                              </div>
+                              {getStatusBadge(nomination.status)}
+                            </div>
                         {nomination.reason && (
                           <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded text-sm">
                             <strong>Reason:</strong> {nomination.reason}
@@ -197,16 +220,18 @@ const CandidateDashboard: React.FC = () => {
                         <div className="mt-2 text-xs text-muted-foreground">
                           Submitted: {new Date(nomination.createdAt).toLocaleString()}
                         </div>
-                        {nomination.manifestoUrl && (
-                          <a
-                            href={`http://64.23.169.136:5656${nomination.manifestoUrl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-2 inline-block text-sm text-blue-600 hover:underline"
-                          >
-                            View Manifesto
-                          </a>
-                        )}
+                            {nomination.manifestoUrl && (
+                              <a
+                                href={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${nomination.manifestoUrl}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-2 inline-block text-sm text-blue-600 hover:underline"
+                              >
+                                View Manifesto
+                              </a>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>

@@ -1,5 +1,5 @@
 // API Configuration
-// Production backend URL
-export const BACKEND_BASE_URL = 'http://64.23.169.136:5656';
+// Use environment variable or default to localhost for development
+export const BACKEND_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656';
 
 

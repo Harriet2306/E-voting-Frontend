@@ -71,7 +71,24 @@ const CreatePositionModal: React.FC<CreatePositionModalProps> = ({ isOpen, onClo
       onSuccess();
       onClose();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to create position');
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to create position';
+      
+      // Check if it's an authentication error
+      if (err.response?.status === 401) {
+        if (errorMessage.includes('Invalid or inactive user') || errorMessage.includes('Invalid token') || errorMessage.includes('Token expired')) {
+          toast.error('Your session has expired. Please log out and log in again.');
+          // Auto-redirect after a delay
+          setTimeout(() => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/admin/login';
+          }, 2000);
+        } else {
+          toast.error(errorMessage);
+        }
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }

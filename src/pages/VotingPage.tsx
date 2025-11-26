@@ -386,7 +386,7 @@ const VotingPage: React.FC = () => {
                                     } rounded-full transition-all duration-300`}>
                                       {candidate.photoUrl ? (
                                         <img
-                                          src={`http://64.23.169.136:5656${candidate.photoUrl}`}
+                                          src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${candidate.photoUrl}`}
                                           alt={candidate.name}
                                           className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-full"
                                           onError={(e) => {

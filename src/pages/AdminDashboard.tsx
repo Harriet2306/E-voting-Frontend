@@ -71,7 +71,7 @@ const AdminDashboard: React.FC = () => {
       const officersList = allUsers.filter((u: any) => u.role === 'OFFICER');
       setOfficers(officersList);
 
-      // Load stats
+      // Load stats - always fetch fresh from backend, no caching
       const [positions, candidates, votersResponse, turnoutData] = await Promise.all([
         positionsAPI.getAll().catch(() => []),
         candidatesAPI.getAll().catch(() => []),
@@ -79,14 +79,30 @@ const AdminDashboard: React.FC = () => {
         reportsAPI.getTurnout().catch(() => ({ votesCast: 0 })),
       ]);
 
+      // Set stats from backend response only - no fallback values
       setStats({
-        positions: positions.length || 0,
-        candidates: candidates.length || 0,
-        voters: votersResponse.pagination?.total || votersResponse.voters?.length || 0,
+        positions: Array.isArray(positions) ? positions.length : 0,
+        candidates: Array.isArray(candidates) ? candidates.length : 0,
+        voters: votersResponse?.pagination?.total ?? (Array.isArray(votersResponse?.voters) ? votersResponse.voters.length : 0),
+        votes: turnoutData?.votesCast ?? 0,
+      });
+      
+      console.log('Dashboard stats loaded from backend:', {
+        positions: positions.length,
+        candidates: candidates.length,
+        voters: votersResponse?.pagination?.total || votersResponse?.voters?.length || 0,
         votes: turnoutData?.votesCast || 0,
       });
     } catch (err) {
       console.error('Failed to load data:', err);
+      // On error, reset to zero
+      setStats({
+        positions: 0,
+        candidates: 0,
+        voters: 0,
+        votes: 0,
+      });
+      setOfficers([]);
     } finally {
       setLoading(false);
     }
