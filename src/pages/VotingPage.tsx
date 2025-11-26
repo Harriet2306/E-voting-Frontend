@@ -60,11 +60,26 @@ const VotingPage: React.FC = () => {
     try {
       // Get ballot data (positions and candidates)
       const ballotResponse = await votesAPI.getBallot(token);
+      
+      console.log('Ballot response:', {
+        positionsCount: ballotResponse.positions?.length || 0,
+        candidatesCount: ballotResponse.candidates?.length || 0,
+        positions: ballotResponse.positions?.map((p: any) => ({
+          name: p.name,
+          votingOpens: p.votingOpens,
+          votingCloses: p.votingCloses,
+        })),
+      });
 
       setBallotData({
         positions: ballotResponse.positions || [],
         candidates: ballotResponse.candidates || [],
       });
+      
+      // Show warning if positions exist but no candidates
+      if (ballotResponse.positions?.length > 0 && ballotResponse.candidates?.length === 0) {
+        toast.error('No approved candidates available for voting yet.', { duration: 5000 });
+      }
     } catch (err: any) {
       console.error('Failed to load ballot:', err);
       if (err.response?.status === 401 || err.response?.status === 400) {
@@ -209,11 +224,15 @@ const VotingPage: React.FC = () => {
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
               <p className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">Possible reasons:</p>
               <ul className="list-disc list-inside text-sm text-blue-800 dark:text-blue-300 space-y-1">
-                <li>Voting window has not opened yet</li>
-                <li>Voting window has closed</li>
-                <li>No positions have been created</li>
-                <li>No approved candidates for available positions</li>
+                <li>Voting window has not opened yet - check with the administrator</li>
+                <li>Voting window has closed - voting period may have ended</li>
+                <li>No positions have been created by the administrator</li>
+                <li>No approved candidates - candidates may still be pending approval</li>
+                <li>Time zone mismatch - contact administrator if voting should be open</li>
               </ul>
+              <p className="text-xs text-blue-700 dark:text-blue-400 mt-3 italic">
+                If you believe voting should be open, please contact the election administrator.
+              </p>
             </div>
             <Button 
               onClick={() => navigate('/verify')} 

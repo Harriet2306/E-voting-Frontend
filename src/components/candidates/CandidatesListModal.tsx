@@ -44,6 +44,7 @@ const CandidatesListModal: React.FC<CandidatesListModalProps> = ({
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -64,14 +65,26 @@ const CandidatesListModal: React.FC<CandidatesListModalProps> = ({
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete candidate "${name}"? This action cannot be undone if they have votes.`)) {
+    // Check if candidate has votes
+    const candidate = candidates.find(c => c.id === id);
+    if (candidate && (candidate._count?.votes || 0) > 0) {
+      toast.error(`Cannot delete "${name}". They have ${candidate._count.votes} vote(s). Delete votes first.`);
       return;
     }
 
+    setShowDeleteConfirm({ id, name });
+  };
+
+  const confirmDelete = async () => {
+    if (!showDeleteConfirm) return;
+    
+    const { id, name } = showDeleteConfirm;
     setDeleting(id);
+    setShowDeleteConfirm(null);
+    
     try {
       await candidatesAPI.delete(id);
-      toast.success('Candidate deleted successfully');
+      toast.success(`Candidate "${name}" deleted successfully`);
       // Refresh the list immediately
       await fetchCandidates();
       if (onCandidateDeleted) {
@@ -89,6 +102,9 @@ const CandidatesListModal: React.FC<CandidatesListModalProps> = ({
         if (onSuccess) {
           onSuccess();
         }
+      } else if (errorMessage.includes('has votes') || errorMessage.includes('cannot be deleted')) {
+        toast.error(errorMessage);
+        await fetchCandidates(); // Refresh to update vote counts
       } else {
         toast.error(errorMessage);
       }
@@ -105,13 +121,13 @@ const CandidatesListModal: React.FC<CandidatesListModalProps> = ({
       const skippedCount = response.skippedCount || 0;
       
       if (deletedCount > 0 && skippedCount > 0) {
-        toast.success(response.message || `${deletedCount} candidate(s) deleted. ${skippedCount} skipped (have votes).`);
+        toast.success(`${deletedCount} candidate(s) deleted. ${skippedCount} skipped (have votes).`, { duration: 5000 });
       } else if (deletedCount > 0) {
-        toast.success(response.message || `All ${deletedCount} candidate(s) deleted successfully`);
+        toast.success(`All ${deletedCount} candidate(s) deleted successfully`, { duration: 4000 });
       } else if (skippedCount > 0) {
-        toast.error(response.message || `No candidates deleted. All ${skippedCount} candidate(s) have votes.`);
+        toast.error(`No candidates deleted. All ${skippedCount} candidate(s) have votes. Delete votes first.`, { duration: 6000 });
       } else {
-        toast.success(response.message || 'No candidates found to delete');
+        toast.success('No candidates found to delete', { duration: 3000 });
       }
       
       setShowDeleteAllConfirm(false);
@@ -125,13 +141,17 @@ const CandidatesListModal: React.FC<CandidatesListModalProps> = ({
       }
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || 'Failed to delete all candidates';
-      toast.error(errorMessage);
+      toast.error(errorMessage, { duration: 5000 });
       // Refresh list anyway to show current state
       await fetchCandidates();
     } finally {
       setDeletingAll(false);
     }
   };
+
+  // Calculate how many candidates can be deleted (those without votes)
+  const candidatesWithoutVotes = candidates.filter(c => (c._count?.votes || 0) === 0);
+  const candidatesWithVotes = candidates.filter(c => (c._count?.votes || 0) > 0);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -240,7 +260,8 @@ const CandidatesListModal: React.FC<CandidatesListModalProps> = ({
                           variant="destructive"
                           size="sm"
                           onClick={() => handleDelete(candidate.id, candidate.name)}
-                          disabled={deleting === candidate.id || deletingAll || (candidate._count?.votes || 0) > 0}
+                          disabled={deleting === candidate.id || deletingAll}
+                          title={(candidate._count?.votes || 0) > 0 ? `Cannot delete: Has ${candidate._count.votes} vote(s)` : 'Delete this candidate'}
                         >
                           {deleting === candidate.id ? 'Deleting...' : 'Delete'}
                         </Button>
@@ -259,6 +280,40 @@ const CandidatesListModal: React.FC<CandidatesListModalProps> = ({
         </Card>
       </div>
 
+      {/* Delete Single Candidate Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="text-red-600">⚠️ Delete Candidate?</CardTitle>
+              <CardDescription>
+                <div className="space-y-2">
+                  <p className="font-semibold text-red-700">Are you sure you want to delete:</p>
+                  <p className="text-lg font-medium text-gray-900">{showDeleteConfirm.name}</p>
+                  <ul className="list-disc list-inside text-sm space-y-1 text-gray-700 mt-3">
+                    <li>Candidate profile and information</li>
+                    <li>Candidate files (photo, manifesto)</li>
+                  </ul>
+                  <p className="text-sm text-red-600 mt-3 font-semibold">
+                    ⚠️ This action cannot be undone.
+                  </p>
+                </div>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button variant="outline" onClick={() => setShowDeleteConfirm(null)} disabled={deleting === showDeleteConfirm.id}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={confirmDelete} disabled={deleting === showDeleteConfirm.id}>
+                  {deleting === showDeleteConfirm.id ? 'Deleting...' : 'Yes, Delete'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Delete All Confirmation Modal */}
       {showDeleteAllConfirm && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
@@ -266,17 +321,28 @@ const CandidatesListModal: React.FC<CandidatesListModalProps> = ({
             <CardHeader>
               <CardTitle className="text-red-600">⚠️ Delete All Candidates?</CardTitle>
               <CardDescription>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <p className="font-semibold text-red-700">This will permanently delete:</p>
                   <ul className="list-disc list-inside text-sm space-y-1 text-gray-700">
-                    <li>All {candidates.length} candidate(s)</li>
-                    <li>All candidate files (photos, manifestos)</li>
+                    <li><strong>{candidatesWithoutVotes.length}</strong> candidate(s) without votes</li>
+                    <li>All candidate files (photos, manifestos) for deletable candidates</li>
                   </ul>
-                  <p className="text-sm text-gray-600 mt-3">
-                    <strong>Note:</strong> Candidates with votes cannot be deleted. This will only delete candidates without votes.
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    <strong>This action cannot be undone.</strong>
+                  {candidatesWithVotes.length > 0 && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-3">
+                      <p className="text-sm text-yellow-800">
+                        <strong>⚠️ Note:</strong> <strong>{candidatesWithVotes.length}</strong> candidate(s) with votes will be <strong>skipped</strong> and cannot be deleted.
+                      </p>
+                    </div>
+                  )}
+                  {candidatesWithoutVotes.length === 0 && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+                      <p className="text-sm text-red-800 font-semibold">
+                        ⚠️ No candidates can be deleted. All candidates have votes.
+                      </p>
+                    </div>
+                  )}
+                  <p className="text-sm text-red-600 font-semibold mt-3">
+                    ⚠️ This action cannot be undone.
                   </p>
                 </div>
               </CardDescription>
@@ -286,8 +352,12 @@ const CandidatesListModal: React.FC<CandidatesListModalProps> = ({
                 <Button variant="outline" onClick={() => setShowDeleteAllConfirm(false)} disabled={deletingAll}>
                   Cancel
                 </Button>
-                <Button variant="destructive" onClick={handleDeleteAll} disabled={deletingAll}>
-                  {deletingAll ? 'Deleting...' : 'Yes, Delete All'}
+                <Button 
+                  variant="destructive" 
+                  onClick={handleDeleteAll} 
+                  disabled={deletingAll || candidatesWithoutVotes.length === 0}
+                >
+                  {deletingAll ? 'Deleting...' : `Yes, Delete ${candidatesWithoutVotes.length > 0 ? candidatesWithoutVotes.length : 'All'}`}
                 </Button>
               </div>
             </CardContent>
