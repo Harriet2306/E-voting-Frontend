@@ -31,6 +31,12 @@ pm2 logs dit_frontend
 
 Your frontend should now be accessible at: **http://64.23.169.136:3063**
 
+**Note:** Make sure port 3063 is open in your firewall:
+```bash
+sudo ufw allow 3063
+sudo ufw reload
+```
+
 ### 5. Configure Nginx (Optional but Recommended)
 
 Create `/etc/nginx/sites-available/dit_frontend`:
@@ -72,6 +78,8 @@ VITE_API_URL=http://64.23.169.136:5656/api
 - **dist folder missing**: Run `npm run build` first
 - **Cannot find module 'express'**: Run `npm install express`
 - **404 errors on routes**: Make sure server.cjs is serving index.html for all routes
+- **Cannot connect from outside**: Check firewall rules with `sudo ufw status` and ensure port 3063 is allowed
+- **PathError with wildcard routes**: This has been fixed in the current server.cjs - if you see this error, pull the latest version
 
 ## PM2 Commands
 
