@@ -8,7 +8,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { toast } from 'react-hot-toast';
-import { formatDate } from '../../lib/utils';
+import { formatDate, isDateInRange } from '../../lib/utils';
 
 const nominationSchema = z.object({
   positionId: z.string().min(1, 'Please select a position'),
@@ -75,11 +75,9 @@ const NominationForm: React.FC<NominationFormProps> = ({ onSuccess }) => {
         }
 
         // Filter positions where nomination window is open
-        const now = new Date();
+        // Use isDateInRange to avoid timezone conversion issues
         const openPositions = positionsData.filter((pos: Position) => {
-          const opens = new Date(pos.nominationOpens);
-          const closes = new Date(pos.nominationCloses);
-          return now >= opens && now <= closes;
+          return isDateInRange(pos.nominationOpens, pos.nominationCloses);
         });
         setPositions(openPositions);
       } catch (error) {
