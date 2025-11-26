@@ -40,7 +40,7 @@ const VerificationPage: React.FC = () => {
   const onRequestOTP = async (data: RequestOTPFormData) => {
     setLoading(true);
     try {
-      const response = await verificationAPI.requestOTP(data.regNo);
+      await verificationAPI.requestOTP(data.regNo);
       setRegNo(data.regNo);
       setOtpSent(true);
       
