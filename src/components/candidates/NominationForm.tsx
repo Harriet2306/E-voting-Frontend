@@ -8,7 +8,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { toast } from 'react-hot-toast';
-import { formatDate, isDateInRange } from '../../lib/utils';
+import { formatDate } from '../../lib/utils';
 
 const nominationSchema = z.object({
   positionId: z.string().min(1, 'Please select a position'),
@@ -60,10 +60,11 @@ const NominationForm: React.FC<NominationFormProps> = ({ onSuccess }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch user info and positions in parallel
-        const [userResponse, positionsData] = await Promise.all([
+        // Fetch user info and open positions in parallel
+        // Use getOpenPositions which filters server-side for better reliability
+        const [userResponse, openPositions] = await Promise.all([
           authAPI.getCurrentUser(),
-          positionsAPI.getAll(),
+          positionsAPI.getOpenPositions(),
         ]);
 
         // Set user info
@@ -74,11 +75,7 @@ const NominationForm: React.FC<NominationFormProps> = ({ onSuccess }) => {
           });
         }
 
-        // Filter positions where nomination window is open
-        // Use isDateInRange to avoid timezone conversion issues
-        const openPositions = positionsData.filter((pos: Position) => {
-          return isDateInRange(pos.nominationOpens, pos.nominationCloses);
-        });
+        // Positions are already filtered by the backend
         setPositions(openPositions);
       } catch (error) {
         console.error('Failed to fetch data:', error);
