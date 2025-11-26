@@ -59,14 +59,24 @@ const VerificationPage: React.FC = () => {
         }
       }, 300);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'Failed to send OTP';
-      const errorHint = err.response?.data?.hint;
-      
-      toast.error(errorMessage, { 
-        duration: 6000
-      });
-      if (errorHint) {
-        toast.error(errorHint, { duration: 5000 });
+      if (err.response?.status === 429) {
+        // Rate limit error - show retry time
+        const errorMessage = err.response?.data?.error || 'Too many requests';
+        const errorHint = err.response?.data?.hint || `Please wait ${err.response?.data?.retryAfter || 60} seconds before trying again`;
+        toast.error(errorMessage, { duration: 8000 });
+        if (errorHint) {
+          toast.error(errorHint, { duration: 7000 });
+        }
+      } else {
+        const errorMessage = err.response?.data?.error || 'Failed to send OTP';
+        const errorHint = err.response?.data?.hint;
+        
+        toast.error(errorMessage, { 
+          duration: 6000
+        });
+        if (errorHint) {
+          toast.error(errorHint, { duration: 5000 });
+        }
       }
     } finally {
       setLoading(false);
