@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { candidatesAPI } from '../services/api';
 import NominationForm from '../components/candidates/NominationForm';
 import { toast } from 'react-hot-toast';
+import { getFileUrl } from '../lib/imageUtils';
 
 interface Nomination {
   id: string;
@@ -185,7 +186,7 @@ const CandidateDashboard: React.FC = () => {
                           <div className="flex-shrink-0">
                             {nomination.photoUrl ? (
                               <img
-                                src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${nomination.photoUrl}`}
+                                src={getFileUrl(nomination.photoUrl) || ''}
                                 alt={nomination.name}
                                 className="w-20 h-20 object-cover rounded-lg border shadow-sm"
                                 onError={(e) => {
@@ -222,7 +223,7 @@ const CandidateDashboard: React.FC = () => {
                         </div>
                             {nomination.manifestoUrl && (
                               <a
-                                href={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${nomination.manifestoUrl}`}
+                                href={getFileUrl(nomination.manifestoUrl) || '#'}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="mt-2 inline-block text-sm text-blue-600 hover:underline"

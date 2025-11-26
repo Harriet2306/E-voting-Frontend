@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { candidatesAPI } from '../../services/api';
 import { toast } from 'react-hot-toast';
+import { getFileUrl } from '../../lib/imageUtils';
 
 interface Candidate {
   id: string;
@@ -197,7 +198,7 @@ const CandidatesListModal: React.FC<CandidatesListModalProps> = ({
                       <div className="flex-shrink-0">
                         {candidate.photoUrl ? (
                           <img
-                            src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${candidate.photoUrl}`}
+                            src={getFileUrl(candidate.photoUrl) || ''}
                             alt={candidate.name}
                             className="w-20 h-20 object-cover rounded-lg border shadow-sm"
                             onError={(e) => {

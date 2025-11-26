@@ -4,6 +4,7 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { candidatesAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
+import { getFileUrl } from '../lib/imageUtils';
 
 interface Nomination {
   id: string;
@@ -85,7 +86,7 @@ const OfficerDashboard: React.FC = () => {
         name: n.name,
         photoUrl: n.photoUrl,
         hasPhoto: !!n.photoUrl,
-        fullPhotoUrl: n.photoUrl ? `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${n.photoUrl}` : null
+        fullPhotoUrl: getFileUrl(n.photoUrl)
       })));
       setNominations(data);
     } catch (err: any) {
@@ -267,14 +268,14 @@ const OfficerDashboard: React.FC = () => {
                         {nomination.photoUrl ? (
                           <>
                             <img
-                              src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${nomination.photoUrl}`}
+                              src={getFileUrl(nomination.photoUrl) || ''}
                               alt={`${nomination.name} photo`}
                               className="w-40 h-40 object-cover rounded-lg border-2 border-gray-300 shadow-lg"
                               onError={(e) => {
                                 // Log error for debugging
                                 console.error('Failed to load candidate photo:', {
                                   photoUrl: nomination.photoUrl,
-                                  fullUrl: `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${nomination.photoUrl}`,
+                                  fullUrl: getFileUrl(nomination.photoUrl),
                                   candidate: nomination.name
                                 });
                                 // Hide image and show placeholder
@@ -338,7 +339,7 @@ const OfficerDashboard: React.FC = () => {
                         {nomination.manifestoUrl && (
                           <div className="mb-4">
                             <a
-                              href={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${nomination.manifestoUrl}`}
+                              href={getFileUrl(nomination.manifestoUrl) || '#'}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1"

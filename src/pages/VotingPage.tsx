@@ -4,6 +4,7 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { votesAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
+import { getFileUrl } from '../lib/imageUtils';
 
 interface Position {
   id: string;
@@ -387,13 +388,13 @@ const VotingPage: React.FC = () => {
                                       {candidate.photoUrl ? (
                                         <>
                                           <img
-                                            src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${candidate.photoUrl}`}
+                                            src={getFileUrl(candidate.photoUrl) || ''}
                                             alt={`${candidate.name} photo`}
                                             className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-full"
                                             onError={(e) => {
                                               console.error('Failed to load candidate photo:', {
                                                 photoUrl: candidate.photoUrl,
-                                                fullUrl: `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${candidate.photoUrl}`,
+                                                fullUrl: getFileUrl(candidate.photoUrl),
                                                 candidate: candidate.name
                                               });
                                               // Hide image and show placeholder

@@ -1,7 +1,25 @@
 import axios from 'axios';
 
-// API Base URL - Use environment variable or default to localhost for development
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://64.23.169.136:5656/api';
+// API Base URL - Auto-detect production or use environment variable
+// Defaults to production URL for VPS deployment
+function getApiBaseUrl(): string {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // Auto-detect: If frontend is on production server, use production backend
+  if (typeof window !== 'undefined') {
+    const currentHost = window.location.hostname;
+    if (currentHost === '64.23.169.136' || currentHost.includes('64.23.169.136')) {
+      return 'http://64.23.169.136:5656/api';
+    }
+  }
+  
+  // Default to localhost for local development
+  return 'http://localhost:5656/api';
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,
