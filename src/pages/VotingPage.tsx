@@ -385,17 +385,39 @@ const VotingPage: React.FC = () => {
                                         : 'ring-2 ring-gray-200 dark:ring-gray-700'
                                     } rounded-full transition-all duration-300`}>
                                       {candidate.photoUrl ? (
-                                        <img
-                                          src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${candidate.photoUrl}`}
-                                          alt={candidate.name}
-                                          className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-full"
-                                          onError={(e) => {
-                                            (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(candidate.name) + '&background=random&size=128';
-                                          }}
-                                        />
+                                        <>
+                                          <img
+                                            src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${candidate.photoUrl}`}
+                                            alt={`${candidate.name} photo`}
+                                            className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-full"
+                                            onError={(e) => {
+                                              console.error('Failed to load candidate photo:', {
+                                                photoUrl: candidate.photoUrl,
+                                                fullUrl: `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${candidate.photoUrl}`,
+                                                candidate: candidate.name
+                                              });
+                                              // Hide image and show placeholder
+                                              const target = e.target as HTMLImageElement;
+                                              target.style.display = 'none';
+                                              const placeholder = target.nextElementSibling as HTMLElement;
+                                              if (placeholder) placeholder.style.display = 'flex';
+                                            }}
+                                            onLoad={(e) => {
+                                              // Image loaded successfully - hide placeholder
+                                              const target = e.target as HTMLImageElement;
+                                              console.log('✅ Voter: Candidate photo loaded:', candidate.name);
+                                              const placeholder = target.nextElementSibling as HTMLElement;
+                                              if (placeholder) placeholder.style.display = 'none';
+                                            }}
+                                          />
+                                          {/* Placeholder - shown only if image fails to load */}
+                                          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-2xl font-bold hidden">
+                                            {candidate.name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2)}
+                                          </div>
+                                        </>
                                       ) : (
-                                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
-                                          {candidate.name.charAt(0).toUpperCase()}
+                                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
+                                          {candidate.name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2)}
                                         </div>
                                       )}
                                     </div>

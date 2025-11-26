@@ -81,6 +81,12 @@ const OfficerDashboard: React.FC = () => {
     setLoading(true);
     try {
       const data = await candidatesAPI.getAll();
+      console.log('Fetched nominations with photos:', data.map((n: Nomination) => ({
+        name: n.name,
+        photoUrl: n.photoUrl,
+        hasPhoto: !!n.photoUrl,
+        fullPhotoUrl: n.photoUrl ? `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${n.photoUrl}` : null
+      })));
       setNominations(data);
     } catch (err: any) {
       console.error('Failed to fetch nominations:', err);
@@ -256,30 +262,56 @@ const OfficerDashboard: React.FC = () => {
                     className="p-6 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                   >
                     <div className="flex gap-6">
-                      {/* Photo - Always show, larger size for better visibility */}
-                      <div className="flex-shrink-0">
+                      {/* Photo - Always show actual uploaded image */}
+                      <div className="flex-shrink-0 relative">
                         {nomination.photoUrl ? (
-                          <img
-                            src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${nomination.photoUrl}`}
-                            alt={nomination.name}
-                            className="w-40 h-40 object-cover rounded-lg border-2 border-gray-300 shadow-lg"
-                            onError={(e) => {
-                              // Hide image and show placeholder on error
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              const placeholder = target.parentElement?.querySelector('.photo-placeholder') as HTMLElement;
-                              if (placeholder) placeholder.style.display = 'flex';
-                            }}
-                          />
-                        ) : null}
-                        {/* Placeholder - shown when no photo or image fails */}
-                        <div 
-                          className={`photo-placeholder w-40 h-40 rounded-lg border-2 border-gray-300 shadow-lg bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center ${nomination.photoUrl ? 'hidden' : 'flex'}`}
-                        >
-                          <span className="text-5xl font-bold text-white">
-                            {nomination.name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2)}
-                          </span>
-                        </div>
+                          <>
+                            <img
+                              src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${nomination.photoUrl}`}
+                              alt={`${nomination.name} photo`}
+                              className="w-40 h-40 object-cover rounded-lg border-2 border-gray-300 shadow-lg"
+                              onError={(e) => {
+                                // Log error for debugging
+                                console.error('Failed to load candidate photo:', {
+                                  photoUrl: nomination.photoUrl,
+                                  fullUrl: `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${nomination.photoUrl}`,
+                                  candidate: nomination.name
+                                });
+                                // Hide image and show placeholder
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const placeholder = target.nextElementSibling as HTMLElement;
+                                if (placeholder) {
+                                  placeholder.style.display = 'flex';
+                                }
+                              }}
+                              onLoad={(e) => {
+                                // Image loaded successfully - hide placeholder
+                                const target = e.target as HTMLImageElement;
+                                console.log('✅ Candidate photo loaded:', nomination.name, nomination.photoUrl);
+                                const placeholder = target.nextElementSibling as HTMLElement;
+                                if (placeholder) {
+                                  placeholder.style.display = 'none';
+                                }
+                              }}
+                            />
+                            {/* Placeholder - hidden by default, shown only on error */}
+                            <div 
+                              className="photo-placeholder w-40 h-40 rounded-lg border-2 border-gray-300 shadow-lg bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center hidden"
+                            >
+                              <span className="text-5xl font-bold text-white">
+                                {nomination.name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2)}
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          // Placeholder when no photoUrl at all
+                          <div className="w-40 h-40 rounded-lg border-2 border-gray-300 shadow-lg bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                            <span className="text-5xl font-bold text-white">
+                              {nomination.name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2)}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Details */}
