@@ -4,19 +4,33 @@ import axios from 'axios';
 // Defaults to production URL for VPS deployment
 function getApiBaseUrl(): string {
   if (import.meta.env.VITE_API_URL) {
+    console.log('[api.ts] Using VITE_API_URL:', import.meta.env.VITE_API_URL);
     return import.meta.env.VITE_API_URL;
   }
   
   // Auto-detect: If frontend is on production server, use production backend
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && window.location) {
     const currentHost = window.location.hostname;
+    
+    // Check for production server IP
     if (currentHost === '64.23.169.136' || currentHost.includes('64.23.169.136')) {
-      return 'http://64.23.169.136:5656/api';
+      const prodUrl = 'http://64.23.169.136:5656/api';
+      console.log('[api.ts] Production detected, using:', prodUrl);
+      return prodUrl;
+    }
+    
+    // Check if running on localhost
+    if (currentHost === 'localhost' || currentHost === '127.0.0.1' || currentHost.startsWith('192.168.') || currentHost.startsWith('10.')) {
+      const localUrl = 'http://localhost:5656/api';
+      console.log('[api.ts] Local development detected, using:', localUrl);
+      return localUrl;
     }
   }
   
-  // Default to localhost for local development
-  return 'http://localhost:5656/api';
+  // Default to production for safety (when deployed)
+  const defaultUrl = 'http://64.23.169.136:5656/api';
+  console.log('[api.ts] Using default production URL:', defaultUrl);
+  return defaultUrl;
 }
 
 const API_BASE_URL = getApiBaseUrl();
