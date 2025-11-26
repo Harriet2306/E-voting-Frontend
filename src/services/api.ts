@@ -1,15 +1,7 @@
 import axios from 'axios';
 
-// API Base URL - Vite exposes env variables through import.meta.env
-// For production: Set VITE_API_URL=http://64.23.169.136:5656/api in .env.production
-// For development: Uses fallback to http://64.23.169.136:5656/api
-// Using type-safe access to Vite's environment variables
-type ViteEnv = {
-  readonly VITE_API_URL?: string;
-};
-
-const env = (import.meta as { env?: ViteEnv }).env;
-const API_BASE_URL = env?.VITE_API_URL || 'http://64.23.169.136:5656/api';
+// API Base URL - Production backend
+const API_BASE_URL = 'http://64.23.169.136:5656/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

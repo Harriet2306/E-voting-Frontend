@@ -12,12 +12,7 @@ export default defineConfig({
   },
   server: {
     port: 3063,
-    proxy: {
-      '/api': {
-        target: 'http://64.23.169.136:5656',
-        changeOrigin: true,
-      },
-    },
+    // Production backend is used directly - no proxy needed
   },
   build: {
     // Optimize chunk splitting
