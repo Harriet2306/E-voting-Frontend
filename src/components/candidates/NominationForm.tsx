@@ -8,6 +8,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { toast } from 'react-hot-toast';
+import { formatDate } from '../../lib/utils';
 
 const nominationSchema = z.object({
   positionId: z.string().min(1, 'Please select a position'),
@@ -194,7 +195,7 @@ const NominationForm: React.FC<NominationFormProps> = ({ onSuccess }) => {
             )}
             {selectedPosition && (
               <p className="text-xs text-muted-foreground">
-                Nomination closes: {new Date(selectedPosition.nominationCloses).toLocaleString()}
+                Nomination closes: {formatDate(selectedPosition.nominationCloses)}
               </p>
             )}
           </div>
