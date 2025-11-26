@@ -256,26 +256,30 @@ const OfficerDashboard: React.FC = () => {
                     className="p-6 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                   >
                     <div className="flex gap-6">
-                      {/* Photo */}
+                      {/* Photo - Always show, larger size for better visibility */}
                       <div className="flex-shrink-0">
                         {nomination.photoUrl ? (
                           <img
                             src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${nomination.photoUrl}`}
                             alt={nomination.name}
-                            className="w-32 h-32 object-cover rounded-lg border shadow-md"
+                            className="w-40 h-40 object-cover rounded-lg border-2 border-gray-300 shadow-lg"
                             onError={(e) => {
-                              // Fallback to placeholder if image fails to load
-                              (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nomination.name)}&background=6366f1&color=fff&size=128&bold=true`;
+                              // Hide image and show placeholder on error
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const placeholder = target.parentElement?.querySelector('.photo-placeholder') as HTMLElement;
+                              if (placeholder) placeholder.style.display = 'flex';
                             }}
                           />
-                        ) : (
-                          // Show placeholder when no photo URL
-                          <div className="w-32 h-32 rounded-lg border shadow-md bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                            <span className="text-4xl font-bold text-white">
-                              {nomination.name.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                        )}
+                        ) : null}
+                        {/* Placeholder - shown when no photo or image fails */}
+                        <div 
+                          className={`photo-placeholder w-40 h-40 rounded-lg border-2 border-gray-300 shadow-lg bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center ${nomination.photoUrl ? 'hidden' : 'flex'}`}
+                        >
+                          <span className="text-5xl font-bold text-white">
+                            {nomination.name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2)}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Details */}

@@ -8,6 +8,7 @@ interface Candidate {
   id: string;
   name: string;
   program: string;
+  photoUrl: string | null;
   status: 'SUBMITTED' | 'APPROVED' | 'REJECTED';
   position: {
     id: string;
@@ -191,7 +192,27 @@ const CandidatesListModal: React.FC<CandidatesListModalProps> = ({
                     key={candidate.id}
                     className="p-4 border-2 border-gray-200 rounded-xl hover:border-purple-300 hover:shadow-md transition-all duration-200"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-4">
+                      {/* Candidate Photo */}
+                      <div className="flex-shrink-0">
+                        {candidate.photoUrl ? (
+                          <img
+                            src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${candidate.photoUrl}`}
+                            alt={candidate.name}
+                            className="w-20 h-20 object-cover rounded-lg border shadow-sm"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(candidate.name)}&background=6366f1&color=fff&size=128&bold=true`;
+                            }}
+                          />
+                        ) : (
+                          <div className="w-20 h-20 rounded-lg border shadow-sm bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
+                            <span className="text-2xl font-bold text-white">
+                              {candidate.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <h3 className="font-semibold text-lg text-gray-900">{candidate.name}</h3>
