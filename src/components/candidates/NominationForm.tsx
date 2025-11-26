@@ -35,6 +35,8 @@ interface Position {
   name: string;
   nominationOpens: string;
   nominationCloses: string;
+  votingOpens?: string;
+  votingCloses?: string;
 }
 
 interface NominationFormProps {
@@ -43,6 +45,7 @@ interface NominationFormProps {
 
 const NominationForm: React.FC<NominationFormProps> = ({ onSuccess }) => {
   const [positions, setPositions] = useState<Position[]>([]);
+  const [allPositions, setAllPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingPositions, setLoadingPositions] = useState(true);
   const [userInfo, setUserInfo] = useState<{ name: string; program: string } | null>(null);
@@ -60,11 +63,12 @@ const NominationForm: React.FC<NominationFormProps> = ({ onSuccess }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch user info and open positions in parallel
-        // Use getOpenPositions which filters server-side for better reliability
-        const [userResponse, openPositions] = await Promise.all([
+        // Fetch user info, open positions, and all positions in parallel
+        // We fetch all positions to show information about closed nominations
+        const [userResponse, openPositions, allPos] = await Promise.all([
           authAPI.getCurrentUser(),
           positionsAPI.getOpenPositions(),
+          positionsAPI.getAll().catch(() => []), // Get all positions for reference
         ]);
 
         // Set user info
@@ -75,8 +79,10 @@ const NominationForm: React.FC<NominationFormProps> = ({ onSuccess }) => {
           });
         }
 
-        // Positions are already filtered by the backend
+        // Set open positions (for submitting nominations)
         setPositions(openPositions);
+        // Set all positions (to show closed positions info)
+        setAllPositions(allPos);
       } catch (error) {
         console.error('Failed to fetch data:', error);
         toast.error('Failed to load information');
@@ -125,16 +131,97 @@ const NominationForm: React.FC<NominationFormProps> = ({ onSuccess }) => {
   }
 
   if (positions.length === 0) {
+    // Check if there are any positions that have closed
+    const now = new Date();
+    const closedPositions = allPositions.filter((pos) => {
+      const closesDate = new Date(pos.nominationCloses);
+      return closesDate < now;
+    });
+    
+    const upcomingPositions = allPositions.filter((pos) => {
+      const opensDate = new Date(pos.nominationOpens);
+      return opensDate > now;
+    });
+
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Submit Nomination</CardTitle>
-          <CardDescription>No positions are currently accepting nominations</CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <span className="text-2xl">⏰</span>
+            Nomination Period Closed
+          </CardTitle>
+          <CardDescription>
+            No positions are currently accepting nominations
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            The nomination window is currently closed for all positions. Please check back later.
-          </p>
+        <CardContent className="space-y-4">
+          {closedPositions.length > 0 && (
+            <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+              <h4 className="font-semibold text-amber-900 dark:text-amber-100 mb-2">
+                Recently Closed Nominations
+              </h4>
+              <div className="space-y-2">
+                {closedPositions.slice(0, 3).map((pos) => (
+                  <div key={pos.id} className="text-sm">
+                    <p className="font-medium text-amber-800 dark:text-amber-200">
+                      {pos.name}
+                    </p>
+                    <p className="text-amber-700 dark:text-amber-300">
+                      Closed: {formatDate(pos.nominationCloses)}
+                    </p>
+                    {pos.votingOpens && (
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                        Voting opens: {formatDate(pos.votingOpens)}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {upcomingPositions.length > 0 && (
+            <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                Upcoming Nominations
+              </h4>
+              <div className="space-y-2">
+                {upcomingPositions.slice(0, 3).map((pos) => (
+                  <div key={pos.id} className="text-sm">
+                    <p className="font-medium text-blue-800 dark:text-blue-200">
+                      {pos.name}
+                    </p>
+                    <p className="text-blue-700 dark:text-blue-300">
+                      Opens: {formatDate(pos.nominationOpens)}
+                    </p>
+                    <p className="text-blue-700 dark:text-blue-300">
+                      Closes: {formatDate(pos.nominationCloses)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              What's Next?
+            </h4>
+            <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1 list-disc list-inside">
+              <li>Check the status of your existing nominations in "My Nominations"</li>
+              <li>Wait for the returning officer to review your submissions</li>
+              <li>Once approved, you'll be eligible for voting</li>
+              {upcomingPositions.length === 0 && closedPositions.length === 0 && (
+                <li>New positions may be added by the administrator</li>
+              )}
+            </ul>
+          </div>
+
+          {allPositions.length === 0 && (
+            <p className="text-sm text-center text-muted-foreground py-4">
+              No election positions have been created yet. Please check back later.
+            </p>
+          )}
         </CardContent>
       </Card>
     );

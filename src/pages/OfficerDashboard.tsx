@@ -257,18 +257,26 @@ const OfficerDashboard: React.FC = () => {
                   >
                     <div className="flex gap-6">
                       {/* Photo */}
-                      {nomination.photoUrl && (
-                        <div className="flex-shrink-0">
+                      <div className="flex-shrink-0">
+                        {nomination.photoUrl ? (
                           <img
-                            src={`http://64.23.169.136:5656${nomination.photoUrl}`}
+                            src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${nomination.photoUrl}`}
                             alt={nomination.name}
-                            className="w-32 h-32 object-cover rounded-lg border"
+                            className="w-32 h-32 object-cover rounded-lg border shadow-md"
                             onError={(e) => {
-                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/128?text=No+Photo';
+                              // Fallback to placeholder if image fails to load
+                              (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nomination.name)}&background=6366f1&color=fff&size=128&bold=true`;
                             }}
                           />
-                        </div>
-                      )}
+                        ) : (
+                          // Show placeholder when no photo URL
+                          <div className="w-32 h-32 rounded-lg border shadow-md bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                            <span className="text-4xl font-bold text-white">
+                              {nomination.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
 
                       {/* Details */}
                       <div className="flex-1">
@@ -294,7 +302,7 @@ const OfficerDashboard: React.FC = () => {
                         {nomination.manifestoUrl && (
                           <div className="mb-4">
                             <a
-                              href={`http://64.23.169.136:5656${nomination.manifestoUrl}`}
+                              href={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5656'}${nomination.manifestoUrl}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1"

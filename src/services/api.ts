@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// API Base URL - Production backend
-const API_BASE_URL = 'http://64.23.169.136:5656/api';
+// API Base URL - Use environment variable or default to localhost for development
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://64.23.169.136:5656/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -17,6 +17,13 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    // Add cache-busting timestamp for GET requests (prevents browser caching)
+    if (config.method === 'get' || config.method === 'GET') {
+      config.params = {
+        ...config.params,
+        _t: Date.now(), // Timestamp to prevent caching
+      };
     }
     return config;
   },
@@ -42,14 +49,29 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401) {
       const errorMessage = error.response?.data?.error || '';
+      // Clear invalid token
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Show user-friendly error message
+      if (errorMessage.includes('Invalid or inactive user') || errorMessage.includes('Invalid token') || errorMessage.includes('Token expired')) {
+        // Redirect to login with message
+        setTimeout(() => {
+          window.location.href = '/admin/login';
+        }, 100);
+        return Promise.reject(new Error('Your session has expired. Please log in again.'));
+      }
+      
       // Don't redirect if it's an account deactivation - let the component handle it
       if (errorMessage.includes('inactive') || errorMessage.includes('deactivated')) {
         // Keep user in localStorage so ProtectedRoute can show deactivation message
         return Promise.reject(error);
       }
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/admin/login';
+      
+      // For other 401 errors, redirect to login
+      setTimeout(() => {
+        window.location.href = '/admin/login';
+      }, 100);
     }
     return Promise.reject(error);
   }
