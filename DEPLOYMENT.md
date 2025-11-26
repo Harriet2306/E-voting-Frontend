@@ -11,10 +11,12 @@ npm run build
 
 This creates a `dist` folder with optimized production files.
 
-### 2. Install Express (if not already installed)
+### 2. Install Dependencies
 ```bash
-npm install express
+npm install express compression
 ```
+
+**Note:** The `compression` package enables gzip compression for faster loading times.
 
 ### 3. Start with PM2
 ```bash
@@ -76,7 +78,8 @@ VITE_API_URL=http://64.23.169.136:5656/api
 
 - **Port already in use**: Change PORT in server.cjs or use `PORT=3063 pm2 start server.cjs`
 - **dist folder missing**: Run `npm run build` first
-- **Cannot find module 'express'**: Run `npm install express`
+- **Cannot find module 'express' or 'compression'**: Run `npm install express compression`
+- **Slow loading times**: Make sure compression is enabled and rebuild with `npm run build` after pulling latest changes
 - **404 errors on routes**: Make sure server.cjs is serving index.html for all routes
 - **Cannot connect from outside**: Check firewall rules with `sudo ufw status` and ensure port 3063 is allowed
 - **PathError with wildcard routes**: This has been fixed in the current server.cjs - if you see this error, pull the latest version
