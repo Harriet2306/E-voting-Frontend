@@ -1,8 +1,8 @@
-# BALLOT BUDDY - Secure Digital Voting Platform
+# FAIR CAST - Secure Digital Voting Platform
 
 <div align="center">
 
-![BALLOT BUDDY Logo](frontend/public/ballot.svg)
+![FAIR CAST Logo](frontend/public/faircast.svg)
 
 **A modern, secure, and transparent digital voting system designed for democratic elections**
 
@@ -46,7 +46,7 @@ For comprehensive documentation, see the [Documentation Index](./docs/INDEX.md) 
 
 ## 🎯 Project Overview
 
-**BALLOT BUDDY** is a comprehensive digital voting platform that enables secure, transparent, and efficient elections. The system supports three main user roles: **Administrators**, **Returning Officers**, and **Candidates**, along with a seamless voting experience for eligible voters.
+**FAIR CAST** is a comprehensive digital voting platform that enables secure, transparent, and efficient elections. The system supports three main user roles: **Administrators**, **Returning Officers**, and **Candidates**, along with a seamless voting experience for eligible voters.
 
 ### Key Highlights
 
@@ -381,7 +381,7 @@ For comprehensive documentation, see the [Documentation Index](./docs/INDEX.md) 
 ballot-buddy/
 ├── backend/
 │   ├── prisma/
-│   │   ├── schema.prisma          # Database schema
+│   │   ├── schema.Prisma          # Database schema
 │   │   ├── migrations/            # Database migrations
 │   │   └── seed.js                # Database seeding
 │   ├── src/
@@ -571,9 +571,9 @@ npm run serve
 | `EMAIL_PORT` | SMTP server port | `587` |
 | `EMAIL_USER` | SMTP username | `your-email@gmail.com` |
 | `EMAIL_PASS` | SMTP password/app password | `your-password` |
-| `SMS_API_KEY` | SMS service API key | `your-api-key` |
-| `SMS_API_SECRET` | SMS service API secret | `your-api-secret` |
-| `SMS_FROM` | SMS sender number | `+1234567890` |
+| `Email_API_KEY` | Email service API key | `your-api-key` |
+| `Email_API_SECRET` | Email service API secret | `your-api-secret` |
+| `Email_FROM` | Email sender Email address | `glowieglosh@gmail.com` |
 
 ### Frontend Environment Variables
 
