@@ -1,3 +1,4 @@
+// Authored by: Charles Ajiet
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -43,14 +44,14 @@ const VerificationPage: React.FC = () => {
       await verificationAPI.requestOTP(data.regNo);
       setRegNo(data.regNo);
       setOtpSent(true);
-      
+
       // Show success message
       toast.success('OTP sent to your email!', { duration: 4000 });
-      
+
       // Always proceed to verify step
       setStep('verify');
       verifyOTPForm.setValue('regNo', data.regNo);
-      
+
       // Auto-focus OTP input after a short delay
       setTimeout(() => {
         const otpInput = document.getElementById('otp');
@@ -70,8 +71,8 @@ const VerificationPage: React.FC = () => {
       } else {
         const errorMessage = err.response?.data?.error || 'Failed to send OTP';
         const errorHint = err.response?.data?.hint;
-        
-        toast.error(errorMessage, { 
+
+        toast.error(errorMessage, {
           duration: 6000
         });
         if (errorHint) {
@@ -105,7 +106,7 @@ const VerificationPage: React.FC = () => {
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent-pink/30 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style={{ animationDelay: '1s' }}></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-primary-light rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
       </div>
-      
+
       <div className="flex items-center justify-center min-h-screen py-8 sm:py-12 px-4 relative z-10">
         <Card className="w-full max-w-md shadow-2xl border-2 border-card-stroke bg-surface rounded-2xl sm:rounded-3xl animate-bounce-in transform transition-all duration-300 hover:shadow-primary/20 hover:scale-[1.02]">
           <CardHeader className="space-y-2 sm:space-y-3 text-center pb-4 sm:pb-6 px-4 sm:px-6 pt-6 sm:pt-8">
@@ -118,22 +119,22 @@ const VerificationPage: React.FC = () => {
                   </linearGradient>
                 </defs>
                 {/* Laptop Screen */}
-                <rect x="25" y="20" width="50" height="35" rx="2" fill="#1F2937"/>
-                <rect x="27" y="22" width="46" height="31" rx="1" fill="#FFFFFF"/>
-                
+                <rect x="25" y="20" width="50" height="35" rx="2" fill="#1F2937" />
+                <rect x="27" y="22" width="46" height="31" rx="1" fill="#FFFFFF" />
+
                 {/* Ballot Box on Screen */}
-                <rect x="40" y="28" width="20" height="22" rx="1.5" fill="url(#verifyPink1)"/>
-                <rect x="42" y="30" width="16" height="18" rx="1" fill="currentColor" opacity="0.3"/>
+                <rect x="40" y="28" width="20" height="22" rx="1.5" fill="url(#verifyPink1)" />
+                <rect x="42" y="30" width="16" height="18" rx="1" fill="currentColor" opacity="0.3" />
                 {/* Ballot Box Slot */}
-                <rect x="42" y="26" width="16" height="2.5" rx="1.25" fill="#1F2937"/>
-                
+                <rect x="42" y="26" width="16" height="2.5" rx="1.25" fill="#1F2937" />
+
                 {/* Ballot Paper */}
-                <rect x="60" y="15" width="6" height="14" rx="0.8" fill="#FFFFFF" stroke="#E5E7EB" strokeWidth="0.5"/>
-                <rect x="61.5" y="17" width="1.5" height="1.5" rx="0.3" fill="none" stroke="#9CA3AF" strokeWidth="0.5"/>
-                <path d="M61.5 17.5L62.5 18.5L64 17" stroke="#10B981" strokeWidth="0.6" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                
+                <rect x="60" y="15" width="6" height="14" rx="0.8" fill="#FFFFFF" stroke="#E5E7EB" strokeWidth="0.5" />
+                <rect x="61.5" y="17" width="1.5" height="1.5" rx="0.3" fill="none" stroke="#9CA3AF" strokeWidth="0.5" />
+                <path d="M61.5 17.5L62.5 18.5L64 17" stroke="#10B981" strokeWidth="0.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+
                 {/* Hand (simplified) */}
-                <ellipse cx="63" cy="12" rx="2.5" ry="2" fill="#FBBF24" opacity="0.9"/>
+                <ellipse cx="63" cy="12" rx="2.5" ry="2" fill="#FBBF24" opacity="0.9" />
               </svg>
             </div>
             <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent animate-fade-in-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
@@ -155,9 +156,8 @@ const VerificationPage: React.FC = () => {
                     type="text"
                     placeholder="S24D14/007"
                     {...requestOTPForm.register('regNo')}
-                    className={`h-12 sm:h-14 rounded-xl border-2 transition-all duration-300 focus:scale-[1.02] focus:border-primary focus:ring-4 focus:ring-primary-light ${
-                      requestOTPForm.formState.errors.regNo ? 'border-error focus:ring-error/20 animate-wiggle' : 'border-card-stroke hover:border-primary/50'
-                    }`}
+                    className={`h-12 sm:h-14 rounded-xl border-2 transition-all duration-300 focus:scale-[1.02] focus:border-primary focus:ring-4 focus:ring-primary-light ${requestOTPForm.formState.errors.regNo ? 'border-error focus:ring-error/20 animate-wiggle' : 'border-card-stroke hover:border-primary/50'
+                      }`}
                     aria-invalid={requestOTPForm.formState.errors.regNo ? 'true' : 'false'}
                     aria-describedby={requestOTPForm.formState.errors.regNo ? 'regNo-error' : undefined}
                   />
@@ -168,9 +168,9 @@ const VerificationPage: React.FC = () => {
                   )}
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 sm:h-14 font-bold text-sm sm:text-base shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl transform hover:scale-[1.02] active:scale-[0.98] hover:-translate-y-1 animate-fade-in-up" 
+                <Button
+                  type="submit"
+                  className="w-full h-12 sm:h-14 font-bold text-sm sm:text-base shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl transform hover:scale-[1.02] active:scale-[0.98] hover:-translate-y-1 animate-fade-in-up"
                   style={{ animationDelay: '0.5s', animationFillMode: 'both' }}
                   disabled={loading}
                 >
@@ -229,9 +229,8 @@ const VerificationPage: React.FC = () => {
                         message: 'OTP must be 6 digits',
                       },
                     })}
-                    className={`h-14 sm:h-16 rounded-xl text-center text-2xl sm:text-3xl tracking-[0.3em] sm:tracking-[0.5em] font-bold border-2 transition-all duration-300 focus:scale-[1.02] focus:border-primary focus:ring-4 focus:ring-primary-light ${
-                      verifyOTPForm.formState.errors.otp ? 'border-error focus:ring-error/20 animate-wiggle' : 'border-card-stroke hover:border-primary/50'
-                    }`}
+                    className={`h-14 sm:h-16 rounded-xl text-center text-2xl sm:text-3xl tracking-[0.3em] sm:tracking-[0.5em] font-bold border-2 transition-all duration-300 focus:scale-[1.02] focus:border-primary focus:ring-4 focus:ring-primary-light ${verifyOTPForm.formState.errors.otp ? 'border-error focus:ring-error/20 animate-wiggle' : 'border-card-stroke hover:border-primary/50'
+                      }`}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '');
                       verifyOTPForm.setValue('otp', value);
@@ -259,9 +258,9 @@ const VerificationPage: React.FC = () => {
                   >
                     Back
                   </Button>
-                  <Button 
-                    type="submit" 
-                    className="flex-1 h-12 sm:h-14 font-bold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] hover:-translate-y-1 text-sm sm:text-base" 
+                  <Button
+                    type="submit"
+                    className="flex-1 h-12 sm:h-14 font-bold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] hover:-translate-y-1 text-sm sm:text-base"
                     disabled={loading}
                   >
                     {loading ? (
