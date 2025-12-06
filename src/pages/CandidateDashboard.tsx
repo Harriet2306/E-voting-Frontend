@@ -1,3 +1,4 @@
+// Authored by: Rinda Joyce
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
@@ -125,157 +126,157 @@ const CandidateDashboard: React.FC = () => {
         </div>
       )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>My Nominations</CardTitle>
-                    <CardDescription>
-                      Track the status of your submitted nominations
-                    </CardDescription>
-                  </div>
-                  <Button onClick={() => setShowForm(!showForm)}>
-                    {showForm ? 'Cancel' : '+ New Nomination'}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle>My Nominations</CardTitle>
+                  <CardDescription>
+                    Track the status of your submitted nominations
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setShowForm(!showForm)}>
+                  {showForm ? 'Cancel' : '+ New Nomination'}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <p className="text-sm text-muted-foreground">Loading nominations...</p>
+              ) : nominations.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    No nominations submitted yet
+                  </p>
+                  <Button onClick={() => setShowForm(true)}>
+                    Submit Your First Nomination
                   </Button>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <p className="text-sm text-muted-foreground">Loading nominations...</p>
-                ) : nominations.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-sm text-muted-foreground mb-4">
-                      No nominations submitted yet
-                    </p>
-                    <Button onClick={() => setShowForm(true)}>
-                      Submit Your First Nomination
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {nominations.map((nomination) => (
-                      <div
-                        key={nomination.id}
-                        className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
-                      >
-                        <div className="flex gap-4">
-                          {/* Photo */}
-                          <div className="flex-shrink-0">
-                            {nomination.photoUrl ? (
-                              <img
-                                src={getFileUrl(nomination.photoUrl) || ''}
-                                alt={nomination.name}
-                                className="w-20 h-20 object-cover rounded-lg border shadow-sm"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nomination.name)}&background=6366f1&color=fff&size=128&bold=true`;
-                                }}
-                              />
-                            ) : (
-                              <div className="w-20 h-20 rounded-lg border shadow-sm bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center">
-                                <span className="text-2xl font-bold text-white">
-                                  {nomination.name.charAt(0).toUpperCase()}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* Details */}
-                          <div className="flex-1">
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <h3 className="font-semibold text-lg">{nomination.position.name}</h3>
-                                <p className="text-sm text-muted-foreground">
-                                  {nomination.name} • {nomination.program}
-                                </p>
-                              </div>
-                              {getStatusBadge(nomination.status)}
+              ) : (
+                <div className="space-y-4">
+                  {nominations.map((nomination) => (
+                    <div
+                      key={nomination.id}
+                      className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      <div className="flex gap-4">
+                        {/* Photo */}
+                        <div className="flex-shrink-0">
+                          {nomination.photoUrl ? (
+                            <img
+                              src={getFileUrl(nomination.photoUrl) || ''}
+                              alt={nomination.name}
+                              className="w-20 h-20 object-cover rounded-lg border shadow-sm"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nomination.name)}&background=6366f1&color=fff&size=128&bold=true`;
+                              }}
+                            />
+                          ) : (
+                            <div className="w-20 h-20 rounded-lg border shadow-sm bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center">
+                              <span className="text-2xl font-bold text-white">
+                                {nomination.name.charAt(0).toUpperCase()}
+                              </span>
                             </div>
-                            
-                            {/* Rejection Reason - Only show for rejected nominations */}
-                            {nomination.status === 'REJECTED' && nomination.reason && (
-                              <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-r-lg">
-                                <div className="flex items-start gap-2">
-                                  <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                  </svg>
-                                  <div className="flex-1">
-                                    <p className="text-sm font-semibold text-red-900 dark:text-red-200 mb-1">
-                                      Rejection Reason:
-                                    </p>
-                                    <p className="text-sm text-red-800 dark:text-red-300">
-                                      {nomination.reason}
-                                    </p>
-                                  </div>
+                          )}
+                        </div>
+
+                        {/* Details */}
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <h3 className="font-semibold text-lg">{nomination.position.name}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {nomination.name} • {nomination.program}
+                              </p>
+                            </div>
+                            {getStatusBadge(nomination.status)}
+                          </div>
+
+                          {/* Rejection Reason - Only show for rejected nominations */}
+                          {nomination.status === 'REJECTED' && nomination.reason && (
+                            <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-r-lg">
+                              <div className="flex items-start gap-2">
+                                <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <div className="flex-1">
+                                  <p className="text-sm font-semibold text-red-900 dark:text-red-200 mb-1">
+                                    Rejection Reason:
+                                  </p>
+                                  <p className="text-sm text-red-800 dark:text-red-300">
+                                    {nomination.reason}
+                                  </p>
                                 </div>
                               </div>
-                            )}
-                            
-                            <div className="mt-2 text-xs text-muted-foreground">
-                              Submitted: {new Date(nomination.createdAt).toLocaleString()}
                             </div>
-                            <div className="mt-3 flex gap-2">
-                              {nomination.manifestoUrl ? (
-                                <a
-                                  href={getFileUrl(nomination.manifestoUrl) || '#'}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-block px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                                >
-                                  View Manifesto
-                                </a>
-                              ) : (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    // Show upload manifesto form
-                                    const manifestoInput = document.createElement('input');
-                                    manifestoInput.type = 'file';
-                                    manifestoInput.accept = 'application/pdf';
-                                    manifestoInput.onchange = async (e) => {
-                                      const file = (e.target as HTMLInputElement).files?.[0];
-                                      if (file) {
-                                        const formData = new FormData();
-                                        formData.append('manifesto', file);
-                                        try {
-                                          await candidatesAPI.uploadManifesto(nomination.id, formData);
-                                          toast.success('Manifesto uploaded successfully!');
-                                          fetchNominations();
-                                        } catch (err) {
-                                          toast.error('Failed to upload manifesto');
-                                        }
+                          )}
+
+                          <div className="mt-2 text-xs text-muted-foreground">
+                            Submitted: {new Date(nomination.createdAt).toLocaleString()}
+                          </div>
+                          <div className="mt-3 flex gap-2">
+                            {nomination.manifestoUrl ? (
+                              <a
+                                href={getFileUrl(nomination.manifestoUrl) || '#'}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-block px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                              >
+                                View Manifesto
+                              </a>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  // Show upload manifesto form
+                                  const manifestoInput = document.createElement('input');
+                                  manifestoInput.type = 'file';
+                                  manifestoInput.accept = 'application/pdf';
+                                  manifestoInput.onchange = async (e) => {
+                                    const file = (e.target as HTMLInputElement).files?.[0];
+                                    if (file) {
+                                      const formData = new FormData();
+                                      formData.append('manifesto', file);
+                                      try {
+                                        await candidatesAPI.uploadManifesto(nomination.id, formData);
+                                        toast.success('Manifesto uploaded successfully!');
+                                        fetchNominations();
+                                      } catch (err) {
+                                        toast.error('Failed to upload manifesto');
                                       }
-                                    };
-                                    manifestoInput.click();
-                                  }}
-                                >
-                                  📄 Upload Manifesto
-                                </Button>
-                              )}
-                            </div>
+                                    }
+                                  };
+                                  manifestoInput.click();
+                                }}
+                              >
+                                📄 Upload Manifesto
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          <div>
-            {showForm && (
-              <NominationForm
-                onSuccess={() => {
-                  setShowForm(false);
-                  fetchNominations();
-                }}
-              />
-            )}
-          </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
+
+        <div>
+          {showForm && (
+            <NominationForm
+              onSuccess={() => {
+                setShowForm(false);
+                fetchNominations();
+              }}
+            />
+          )}
+        </div>
+      </div>
     </DashboardLayout>
   );
 };
