@@ -2,47 +2,36 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Button } from '../ui/button';
 import { reportsAPI } from '../../services/api';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import {
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Cell,
 } from 'recharts';
+import { getFileUrl } from '../../lib/imageUtils';
 
 interface TurnoutData {
   totalVoters: number;
-  verifiedVoters: number;
   votesCast: number;
-  ballotsIssued: number;
   nonVoters: number;
   turnout: number;
-  verificationRate: number;
-  ballotUsageRate: number;
   nonVoterPercentage: number;
-  breakdown: {
-    voted: number;
-    notVoted: number;
-    verified: number;
-    notVerified: number;
-  };
 }
 
 interface CandidateResult {
   candidateId: string;
   name: string;
   program: string;
+  photoUrl: string | null;
   votes: number;
   rank: number;
   votePercentage: number;
-  overallPercentage: number;
   isWinner: boolean;
 }
 
@@ -52,28 +41,18 @@ interface PositionResult {
   seats: number;
   totalVotes: number;
   candidates: CandidateResult[];
-  winner: CandidateResult | null;
 }
 
 interface ResultsData {
   positions: PositionResult[];
-  summary: {
-    totalPositions: number;
-    totalCandidates: number;
-    totalVotesCast: number;
-  };
 }
 
 const COLORS = {
-  primary: '#3b82f6',
-  success: '#10b981',
-  warning: '#f59e0b',
-  danger: '#ef4444',
-  purple: '#8b5cf6',
-  teal: '#14b8a6',
-  orange: '#f97316',
-  pink: '#ec4899',
-  amber: '#f59e0b',
+  primary: '#EC4899',
+  secondary: '#F472B6',
+  success: '#10B981',
+  danger: '#EF4444',
+  gray: '#9CA3AF',
 };
 
 const ReportsDashboard: React.FC = () => {
@@ -95,6 +74,10 @@ const ReportsDashboard: React.FC = () => {
       ]);
       setTurnoutData(turnout);
       setResultsData(results);
+      // Auto-select first position
+      if (results.positions && results.positions.length > 0) {
+        setSelectedPosition(results.positions[0].positionId);
+      }
     } catch (err: any) {
       console.error('Failed to load reports:', err);
       toast.error(err.response?.data?.error || 'Failed to load reports');
@@ -103,46 +86,36 @@ const ReportsDashboard: React.FC = () => {
     }
   };
 
-  // Prepare data for charts
-  const turnoutPieData = turnoutData
-    ? [
-        {
-          name: 'Voted',
-          value: turnoutData.votesCast,
-          percentage: turnoutData.turnout,
-          color: COLORS.success,
-        },
-        {
-          name: 'Did Not Vote',
-          value: turnoutData.nonVoters,
-          percentage: turnoutData.nonVoterPercentage,
-          color: COLORS.danger,
-        },
-      ]
-    : [];
-
-  const verificationPieData = turnoutData
-    ? [
-        {
-          name: 'Verified',
-          value: turnoutData.verifiedVoters,
-          percentage: turnoutData.verificationRate,
-          color: COLORS.success,
-        },
-        {
-          name: 'Not Verified',
-          value: turnoutData.breakdown.notVerified,
-          percentage: 100 - turnoutData.verificationRate,
-          color: COLORS.warning,
-        },
-      ]
-    : [];
-
   const selectedPositionData = resultsData?.positions.find(
-    (p) => p.positionId === selectedPosition || (!selectedPosition && p.positionId)
+    (p) => p.positionId === selectedPosition
   );
 
-  const candidateBarData = selectedPositionData
+  // Prepare line chart data with candidates and "Not Voted"
+  const lineChartData = selectedPositionData && turnoutData
+    ? [
+        ...selectedPositionData.candidates.map((candidate) => ({
+          name: candidate.name.length > 15 
+            ? candidate.name.substring(0, 15) + '...' 
+            : candidate.name,
+          fullName: candidate.name,
+          votes: candidate.votes,
+          percentage: candidate.votePercentage,
+          isWinner: candidate.isWinner,
+          photoUrl: candidate.photoUrl,
+        })),
+        {
+          name: 'Not Voted',
+          fullName: 'Not Voted',
+          votes: turnoutData.nonVoters,
+          percentage: turnoutData.nonVoterPercentage,
+          isWinner: false,
+          photoUrl: null,
+        },
+      ]
+    : [];
+
+  // Prepare line chart data with candidate photos for display
+  const candidatesWithPhotosData = selectedPositionData
     ? selectedPositionData.candidates.map((candidate) => ({
         name: candidate.name.length > 15 
           ? candidate.name.substring(0, 15) + '...' 
@@ -150,546 +123,289 @@ const ReportsDashboard: React.FC = () => {
         fullName: candidate.name,
         votes: candidate.votes,
         percentage: candidate.votePercentage,
-        rank: candidate.rank,
         isWinner: candidate.isWinner,
+        photoUrl: candidate.photoUrl,
       }))
     : [];
 
-  // Comparison chart - Top candidates across all positions
-  const topCandidatesData = resultsData
-    ? resultsData.positions
-        .flatMap((position) =>
-          position.candidates
-            .filter((c) => c.rank === 1)
-            .map((c) => ({
-              position: position.positionName,
-              candidate: c.name,
-              votes: c.votes,
-              percentage: c.votePercentage,
-            }))
-        )
-        .sort((a, b) => b.votes - a.votes)
-        .slice(0, 10)
-    : [];
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-surface p-4 border-2 border-card-stroke rounded-xl shadow-xl">
+          <p className="font-bold text-foreground mb-2">{data.fullName}</p>
+          <p className="text-sm text-muted-foreground">
+            <span className="font-semibold">Votes:</span> {data.votes.toLocaleString()}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            <span className="font-semibold">Percentage:</span> {data.percentage.toFixed(2)}%
+          </p>
+          {data.isWinner && (
+            <p className="text-sm text-primary font-semibold mt-1">🏆 Winner</p>
+          )}
+        </div>
+      );
+    }
+    return null;
+  };
 
-  // Position comparison chart
-  const positionComparisonData = resultsData
-    ? resultsData.positions.map((position) => ({
-        name: position.positionName.length > 12
-          ? position.positionName.substring(0, 12) + '...'
-          : position.positionName,
-        fullName: position.positionName,
-        totalVotes: position.totalVotes,
-        candidates: position.candidates.length,
-        winnerVotes: position.winner?.votes || 0,
-        winnerPercentage: position.winner?.votePercentage || 0,
-      }))
-    : [];
+  const CustomLabel = (props: any) => {
+    const { x, y, payload } = props;
+    const data = payload.payload;
+    
+    if (data.name === 'Not Voted') {
+      return (
+        <text x={x} y={y} dy={-10} fill={COLORS.danger} fontSize={12} fontWeight="bold" textAnchor="middle">
+          {data.name}
+        </text>
+      );
+    }
+    
+    return null;
+  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 border-2 border-blue-200/50">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Election Reports Dashboard
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-surface rounded-2xl shadow-lg p-6 border-2 border-card-stroke">
+        <div className="mb-4">
+          <h1 className="text-3xl font-bold text-foreground mb-1">
+            Election <span className="text-primary">Results</span>
           </h1>
-          <p className="text-gray-600">
-            Comprehensive analytics and visualizations for decision-making
+          <p className="text-muted-foreground text-sm">
+            View candidate performance and voting statistics
           </p>
-          <div className="mt-4 flex gap-2">
-            <Button onClick={loadReports} variant="outline">
-              Refresh Data
-            </Button>
-            <Button
-              onClick={() => window.print()}
-              variant="outline"
-              className="hidden print:block"
-            >
-              Print Report
-            </Button>
-          </div>
         </div>
+      </div>
 
-        {/* Turnout Section */}
-        {turnoutData && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Turnout Overview Cards */}
-            <Card className="border-2 border-blue-200/50 shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-2xl text-blue-600">Voter Turnout</CardTitle>
-                <CardDescription>Overall participation statistics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-                    <span className="text-lg font-semibold text-gray-700">Turnout Rate</span>
-                    <span className="text-3xl font-bold text-blue-600">
-                      {turnoutData.turnout}%
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-green-50 rounded-xl">
-                      <p className="text-sm text-gray-600">Votes Cast</p>
-                      <p className="text-2xl font-bold text-green-600">
-                        {turnoutData.votesCast.toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="p-4 bg-red-50 rounded-xl">
-                      <p className="text-sm text-gray-600">Did Not Vote</p>
-                      <p className="text-2xl font-bold text-red-600">
-                        {turnoutData.nonVoters.toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="p-4 bg-gray-50 rounded-xl">
-                    <p className="text-sm text-gray-600">Total Eligible Voters</p>
-                    <p className="text-2xl font-bold text-gray-700">
-                      {turnoutData.totalVoters.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+      {resultsData && resultsData.positions.length > 0 && (
+        <>
+          {/* Position Selection */}
+          <Card className="border-2 border-card-stroke shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-xl text-primary">Select Position</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-3">
+                {resultsData.positions.map((position) => (
+                  <Button
+                    key={position.positionId}
+                    variant={selectedPosition === position.positionId ? 'default' : 'outline'}
+                    onClick={() => setSelectedPosition(position.positionId)}
+                    className="transition-all duration-200"
+                  >
+                    {position.positionName}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Turnout Pie Chart */}
-            <Card className="border-2 border-green-200/50 shadow-xl">
+          {/* Line Chart with Candidates and Not Voted */}
+          {selectedPositionData && lineChartData.length > 0 && (
+            <Card className="border-2 border-card-stroke shadow-lg">
               <CardHeader>
-                <CardTitle className="text-2xl text-green-600">Voting Participation</CardTitle>
-                <CardDescription>Visual breakdown of voter participation</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={turnoutPieData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={(props) => {
-                        const name = props.name ?? '';
-                        const percent = props.percent ?? 0;
-                        return `${name}: ${(percent * 100).toFixed(1)}%`;
-                      }}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {turnoutPieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Verification Status */}
-            <Card className="border-2 border-purple-200/50 shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-2xl text-purple-600">Verification Status</CardTitle>
-                <CardDescription>OTP verification statistics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={verificationPieData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={(props) => {
-                        const name = props.name ?? '';
-                        const percent = props.percent ?? 0;
-                        return `${name}: ${(percent * 100).toFixed(1)}%`;
-                      }}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {verificationPieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="mt-4 text-center">
-                  <p className="text-sm text-gray-600">Verification Rate</p>
-                  <p className="text-2xl font-bold text-purple-600">
-                    {turnoutData.verificationRate.toFixed(1)}%
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Turnout Metrics */}
-            <Card className="border-2 border-orange-200/50 shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-2xl text-orange-600">Additional Metrics</CardTitle>
-                <CardDescription>Detailed performance indicators</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl">
-                    <p className="text-sm text-gray-600 mb-1">Ballot Usage Rate</p>
-                    <p className="text-3xl font-bold text-orange-600">
-                      {turnoutData.ballotUsageRate.toFixed(1)}%
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {turnoutData.votesCast} of {turnoutData.ballotsIssued} ballots used
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-blue-50 rounded-xl">
-                      <p className="text-sm text-gray-600">Verified Voters</p>
-                      <p className="text-xl font-bold text-blue-600">
-                        {turnoutData.verifiedVoters.toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="p-4 bg-yellow-50 rounded-xl">
-                      <p className="text-sm text-gray-600">Not Verified</p>
-                      <p className="text-xl font-bold text-yellow-600">
-                        {turnoutData.breakdown.notVerified.toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Results Section */}
-        {resultsData && (
-          <div className="space-y-6">
-            {/* Position Selection */}
-            <Card className="border-2 border-indigo-200/50 shadow-xl">
-              <CardHeader>
-                <CardTitle className="text-2xl text-indigo-600">Election Results</CardTitle>
+                <CardTitle className="text-xl text-primary">
+                  {selectedPositionData.positionName} - Votes & Percentage
+                </CardTitle>
                 <CardDescription>
-                  Select a position to view detailed candidate performance
+                  Candidate performance with votes cast and percentage, including not voted
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {resultsData.positions.map((position) => (
-                    <Button
-                      key={position.positionId}
-                      variant={
-                        selectedPosition === position.positionId ||
-                        (!selectedPosition && position === resultsData.positions[0])
-                          ? 'default'
-                          : 'outline'
-                      }
-                      onClick={() => setSelectedPosition(position.positionId)}
-                      className="transition-all duration-200"
-                    >
-                      {position.positionName}
-                    </Button>
-                  ))}
-                </div>
-
-                {selectedPositionData && (
-                  <div className="space-y-4">
-                    <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">
-                        {selectedPositionData.positionName}
-                      </h3>
-                      <div className="grid grid-cols-3 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-600">Total Votes</p>
-                          <p className="text-2xl font-bold text-indigo-600">
-                            {selectedPositionData.totalVotes.toLocaleString()}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Candidates</p>
-                          <p className="text-2xl font-bold text-indigo-600">
-                            {selectedPositionData.candidates.length}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">Seats Available</p>
-                          <p className="text-2xl font-bold text-indigo-600">
-                            {selectedPositionData.seats}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <ResponsiveContainer width="100%" height={500}>
+                  <LineChart data={lineChartData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#FCE7F3" />
+                    <XAxis
+                      dataKey="name"
+                      angle={-45}
+                      textAnchor="end"
+                      height={100}
+                      tick={{ fill: '#6B7280', fontSize: 12 }}
+                    />
+                    <YAxis
+                      yAxisId="votes"
+                      orientation="left"
+                      tick={{ fill: '#6B7280' }}
+                      label={{ value: 'Votes', angle: -90, position: 'insideLeft', fill: '#6B7280' }}
+                    />
+                    <YAxis
+                      yAxisId="percentage"
+                      orientation="right"
+                      tick={{ fill: '#6B7280' }}
+                      label={{ value: 'Percentage (%)', angle: 90, position: 'insideRight', fill: '#6B7280' }}
+                      domain={[0, 100]}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend />
+                    <Line
+                      yAxisId="votes"
+                      type="monotone"
+                      dataKey="votes"
+                      stroke={COLORS.primary}
+                      strokeWidth={3}
+                      dot={{ r: 6, fill: COLORS.primary }}
+                      activeDot={{ r: 8 }}
+                      name="Votes"
+                    />
+                    <Line
+                      yAxisId="percentage"
+                      type="monotone"
+                      dataKey="percentage"
+                      stroke={COLORS.success}
+                      strokeWidth={3}
+                      dot={{ r: 6, fill: COLORS.success }}
+                      activeDot={{ r: 8 }}
+                      name="Percentage (%)"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
+          )}
 
-            {/* Candidate Performance Bar Chart */}
-            {selectedPositionData && candidateBarData.length > 0 && (
-              <Card className="border-2 border-teal-200/50 shadow-xl">
-                <CardHeader>
-                  <CardTitle className="text-2xl text-teal-600">
-                    Candidate Performance - {selectedPositionData.positionName}
-                  </CardTitle>
-                  <CardDescription>
-                    Vote distribution and percentages for each candidate
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={candidateBarData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis
-                        dataKey="name"
-                        angle={-45}
-                        textAnchor="end"
-                        height={100}
-                      />
-                      <YAxis />
-                      <Tooltip
-                        formatter={(value: number, name: string, props: any) => {
-                          if (name === 'votes') {
-                            return [
-                              `${value} votes (${props.payload.percentage.toFixed(1)}%)`,
-                              'Votes',
-                            ];
-                          }
-                          return value;
-                        }}
-                        labelFormatter={(label) => `Candidate: ${label}`}
-                      />
-                      <Legend />
-                      <Bar
-                        dataKey="votes"
-                        fill={COLORS.primary}
-                        name="Votes"
-                        radius={[8, 8, 0, 0]}
-                      >
-                        {candidateBarData.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={entry.isWinner ? COLORS.success : COLORS.primary}
-                          />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-
-                  {/* Candidate Rankings Table */}
-                  <div className="mt-6 overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="bg-gray-100">
-                          <th className="border p-3 text-left">Rank</th>
-                          <th className="border p-3 text-left">Candidate</th>
-                          <th className="border p-3 text-left">Program</th>
-                          <th className="border p-3 text-right">Votes</th>
-                          <th className="border p-3 text-right">Percentage</th>
-                          <th className="border p-3 text-center">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {selectedPositionData.candidates.map((candidate) => (
-                          <tr
-                            key={candidate.candidateId}
-                            className={
-                              candidate.isWinner
-                                ? 'bg-green-50 font-semibold'
-                                : 'hover:bg-gray-50'
-                            }
-                          >
-                            <td className="border p-3">
-                              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-bold">
-                                {candidate.rank}
-                              </span>
-                            </td>
-                            <td className="border p-3">{candidate.name}</td>
-                            <td className="border p-3 text-sm text-gray-600">
-                              {candidate.program}
-                            </td>
-                            <td className="border p-3 text-right font-semibold">
-                              {candidate.votes.toLocaleString()}
-                            </td>
-                            <td className="border p-3 text-right">
-                              <span className="font-semibold text-indigo-600">
-                                {candidate.votePercentage.toFixed(2)}%
-                              </span>
-                            </td>
-                            <td className="border p-3 text-center">
-                              {candidate.isWinner ? (
-                                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                                  Winner
-                                </span>
-                              ) : (
-                                <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
-                                  Runner-up
-                                </span>
+          {/* Line Chart with Candidate Photos */}
+          {selectedPositionData && candidatesWithPhotosData.length > 0 && (
+            <Card className="border-2 border-card-stroke shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-xl text-primary">
+                  {selectedPositionData.positionName} - Candidates with Photos
+                </CardTitle>
+                <CardDescription>
+                  Visual representation of candidates with their photos
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={500}>
+                  <LineChart data={candidatesWithPhotosData} margin={{ top: 60, right: 30, left: 20, bottom: 120 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#FCE7F3" />
+                    <XAxis
+                      dataKey="name"
+                      angle={-45}
+                      textAnchor="end"
+                      height={140}
+                      tick={{ fill: '#6B7280', fontSize: 12 }}
+                      tickLine={false}
+                      interval={0}
+                    />
+                    <YAxis
+                      tick={{ fill: '#6B7280' }}
+                      label={{ value: 'Votes', angle: -90, position: 'insideLeft', fill: '#6B7280' }}
+                    />
+                    <Tooltip 
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-surface p-4 border-2 border-card-stroke rounded-xl shadow-xl">
+                              {data.photoUrl && (
+                                <img
+                                  src={getFileUrl(data.photoUrl) || ''}
+                                  alt={data.fullName}
+                                  className="w-20 h-20 object-cover rounded-lg mb-2 border-2 border-card-stroke"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
+                                />
                               )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                              <p className="font-bold text-gray-900 mb-1">{data.fullName}</p>
+                              <p className="text-sm text-gray-600">
+                                <span className="font-semibold">Votes:</span> {data.votes.toLocaleString()}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                <span className="font-semibold">Percentage:</span> {data.percentage.toFixed(2)}%
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="votes"
+                      stroke={COLORS.primary}
+                      strokeWidth={4}
+                      dot={{ r: 8, fill: COLORS.primary, stroke: '#fff', strokeWidth: 2 }}
+                      activeDot={{ r: 12 }}
+                      name="Votes"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
 
-            {/* Position Comparison Chart */}
-            {positionComparisonData.length > 0 && (
-              <Card className="border-2 border-pink-200/50 shadow-xl">
-                <CardHeader>
-                  <CardTitle className="text-2xl text-pink-600">
-                    Position Comparison
-                  </CardTitle>
-                  <CardDescription>
-                    Compare total votes and engagement across all positions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={positionComparisonData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis
-                        dataKey="name"
-                        angle={-45}
-                        textAnchor="end"
-                        height={100}
-                      />
-                      <YAxis />
-                      <Tooltip
-                        formatter={(value: number, name: string, props: any) => {
-                          if (name === 'totalVotes') {
-                            return [
-                              `${value.toLocaleString()} votes`,
-                              'Total Votes',
-                            ];
-                          }
-                          if (name === 'winnerVotes') {
-                            return [
-                              `${value.toLocaleString()} votes (${props.payload.winnerPercentage.toFixed(1)}%)`,
-                              'Winner Votes',
-                            ];
-                          }
-                          return value;
-                        }}
-                        labelFormatter={(label) => `Position: ${label}`}
-                      />
-                      <Legend />
-                      <Bar
-                        dataKey="totalVotes"
-                        fill={COLORS.primary}
-                        name="Total Votes"
-                        radius={[8, 8, 0, 0]}
-                      />
-                      <Bar
-                        dataKey="winnerVotes"
-                        fill={COLORS.success}
-                        name="Winner Votes"
-                        radius={[8, 8, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Top Winners Chart */}
-            {topCandidatesData.length > 0 && (
-              <Card className="border-2 border-amber-200/50 shadow-xl">
-                <CardHeader>
-                  <CardTitle className="text-2xl text-amber-600">
-                    Top Winners Across All Positions
-                  </CardTitle>
-                  <CardDescription>
-                    Leading candidates from each position ranked by vote count
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart
-                      data={topCandidatesData}
-                      layout="vertical"
-                      margin={{ left: 100 }}
+                {/* Candidate Photos Grid Below Chart */}
+                <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {candidatesWithPhotosData.map((candidate, index) => (
+                    <div
+                      key={candidate.candidateId || index}
+                      className={`text-center p-3 rounded-xl border-2 transition-all duration-300 ${
+                        candidate.isWinner
+                          ? 'border-primary bg-primary-light shadow-md'
+                          : 'border-card-stroke bg-surface hover:shadow-md'
+                      }`}
                     >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis
-                        dataKey="candidate"
-                        type="category"
-                        width={100}
-                      />
-                      <Tooltip
-                        formatter={(value: number, name: string, props: any) => {
-                          if (name === 'votes') {
-                            return [
-                              `${value.toLocaleString()} votes (${props.payload.percentage.toFixed(1)}%)`,
-                              'Votes',
-                            ];
-                          }
-                          return value;
-                        }}
-                        labelFormatter={(label) => `Position: ${label}`}
-                      />
-                      <Legend />
-                      <Bar
-                        dataKey="votes"
-                        fill={COLORS.warning}
-                        name="Votes"
-                        radius={[0, 8, 8, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            )}
+                      {candidate.photoUrl ? (
+                        <img
+                          src={getFileUrl(candidate.photoUrl) || ''}
+                          alt={candidate.fullName}
+                          className="w-20 h-20 mx-auto mb-2 object-cover rounded-full border-2 border-primary/30 shadow-sm"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const placeholder = target.nextElementSibling as HTMLElement;
+                            if (placeholder) {
+                              placeholder.style.display = 'flex';
+                            }
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className={`w-20 h-20 mx-auto mb-2 rounded-full border-2 border-primary/30 shadow-sm bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-primary-foreground font-bold text-xl ${
+                          candidate.photoUrl ? 'hidden' : 'flex'
+                        }`}
+                      >
+                        {candidate.fullName.charAt(0).toUpperCase()}
+                      </div>
+                      <p className="text-xs font-semibold text-gray-900 truncate mb-1">
+                        {candidate.fullName}
+                      </p>
+                      <p className="text-xs text-gray-600 mb-1">
+                        {candidate.votes.toLocaleString()} votes
+                      </p>
+                      <p className="text-xs font-semibold text-primary">
+                        {candidate.percentage.toFixed(1)}%
+                      </p>
+                      {candidate.isWinner && (
+                        <p className="text-xs text-primary font-bold mt-1">🏆 Winner</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
 
-            {/* Summary Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="border-2 border-blue-200/50 shadow-xl">
-                <CardHeader>
-                  <CardTitle className="text-xl text-blue-600">Total Positions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-4xl font-bold text-blue-600">
-                    {resultsData.summary.totalPositions}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="border-2 border-green-200/50 shadow-xl">
-                <CardHeader>
-                  <CardTitle className="text-xl text-green-600">Total Candidates</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-4xl font-bold text-green-600">
-                    {resultsData.summary.totalCandidates}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="border-2 border-purple-200/50 shadow-xl">
-                <CardHeader>
-                  <CardTitle className="text-xl text-purple-600">Total Votes Cast</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-4xl font-bold text-purple-600">
-                    {resultsData.summary.totalVotesCast.toLocaleString()}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
-      </div>
+      {!loading && (!resultsData || resultsData.positions.length === 0) && (
+        <Card className="border-2 border-card-stroke shadow-lg">
+          <CardContent className="p-12 text-center">
+            <div className="text-5xl mb-4">📊</div>
+            <p className="text-gray-600">No election results available yet</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
 
 export default ReportsDashboard;
-

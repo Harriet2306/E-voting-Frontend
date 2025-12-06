@@ -1,8 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/HomePage';
-import CandidateLoginPage from './pages/CandidateLoginPage';
-import AdminLoginPage from './pages/AdminLoginPage';
+import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/AdminDashboard';
 import OfficerDashboard from './pages/OfficerDashboard';
 import CandidateDashboard from './pages/CandidateDashboard';
@@ -24,10 +23,9 @@ function App() {
       <Routes>
         {/* Home/Splash Page */}
         <Route path="/" element={<HomePage />} />
-        
-        {/* Login Pages */}
-        <Route path="/candidate/login" element={<CandidateLoginPage />} />
-        <Route path="/admin/login" element={<AdminLoginPage />} />
+
+        {/* Single Login Page */}
+        <Route path="/login" element={<LoginPage />} />
         
         {/* Registration */}
         <Route path="/candidate/register" element={<RegisterCandidate />} />

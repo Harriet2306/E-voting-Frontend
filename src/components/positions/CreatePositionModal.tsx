@@ -7,7 +7,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { positionsAPI } from '../../services/api';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 const createPositionSchema = z.object({
   name: z.string().min(1, 'Position name is required'),
@@ -81,7 +81,7 @@ const CreatePositionModal: React.FC<CreatePositionModalProps> = ({ isOpen, onClo
           setTimeout(() => {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            window.location.href = '/admin/login';
+            window.location.href = '/login';
           }, 2000);
         } else {
           toast.error(errorMessage);

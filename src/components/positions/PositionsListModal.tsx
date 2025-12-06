@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
 import { positionsAPI } from '../../services/api';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { formatDate } from '../../lib/utils';
 
 interface Position {
@@ -32,11 +30,6 @@ const PositionsListModal: React.FC<PositionsListModalProps> = ({ isOpen, onClose
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [extending, setExtending] = useState<string | null>(null);
-  const [showExtendModal, setShowExtendModal] = useState(false);
-  const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
-  const [nominationHours, setNominationHours] = useState<string>('');
-  const [votingHours, setVotingHours] = useState<string>('');
 
   useEffect(() => {
     if (isOpen) {
@@ -76,49 +69,6 @@ const PositionsListModal: React.FC<PositionsListModalProps> = ({ isOpen, onClose
     }
   };
 
-  const openExtendModal = (position: Position) => {
-    setSelectedPosition(position);
-    setNominationHours('');
-    setVotingHours('');
-    setShowExtendModal(true);
-  };
-
-  const closeExtendModal = () => {
-    setShowExtendModal(false);
-    setSelectedPosition(null);
-    setNominationHours('');
-    setVotingHours('');
-  };
-
-  const handleExtendTime = async () => {
-    if (!selectedPosition) return;
-
-    if (!nominationHours && !votingHours) {
-      toast.error('Please enter at least one extension value');
-      return;
-    }
-
-    setExtending(selectedPosition.id);
-    try {
-      await positionsAPI.extendTime(selectedPosition.id, {
-        extendNominationHours: nominationHours ? parseFloat(nominationHours) : undefined,
-        extendVotingHours: votingHours ? parseFloat(votingHours) : undefined,
-      });
-              toast.success('Time windows extended successfully');
-              closeExtendModal();
-              fetchPositions();
-              if (onSuccess) {
-                onSuccess();
-              }
-              if (onPositionDeleted) {
-                onPositionDeleted();
-              }
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to extend time windows');
-    } finally {
-      setExtending(null);
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -169,19 +119,10 @@ const PositionsListModal: React.FC<PositionsListModalProps> = ({ isOpen, onClose
                     </div>
                     <div className="flex gap-2">
                       <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => openExtendModal(position)}
-                        disabled={extending === position.id || deleting === position.id}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        {extending === position.id ? 'Extending...' : '⏰ Extend Time'}
-                      </Button>
-                      <Button
                         variant="destructive"
                         size="sm"
                         onClick={() => handleDelete(position.id, position.name)}
-                        disabled={deleting === position.id || extending === position.id || (position._count?.candidates || 0) > 0 || (position._count?.votes || 0) > 0}
+                        disabled={deleting === position.id || (position._count?.candidates || 0) > 0 || (position._count?.votes || 0) > 0}
                       >
                         {deleting === position.id ? 'Deleting...' : 'Delete'}
                       </Button>
@@ -208,64 +149,6 @@ const PositionsListModal: React.FC<PositionsListModalProps> = ({ isOpen, onClose
           </div>
         </CardContent>
       </Card>
-
-      {/* Extend Time Modal */}
-      {showExtendModal && selectedPosition && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle>Extend Time Windows</CardTitle>
-              <CardDescription>
-                Extend the nomination or voting period for "{selectedPosition.name}".
-                <br />
-                Enter the number of hours to extend each window.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="nominationHours">Extend Nomination Period (hours)</Label>
-                  <Input
-                    id="nominationHours"
-                    type="number"
-                    min="0"
-                    step="0.5"
-                    placeholder="e.g., 24 (for 1 day)"
-                    value={nominationHours}
-                    onChange={(e) => setNominationHours(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Current closes: {formatDate(selectedPosition.nominationCloses)}
-                  </p>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="votingHours">Extend Voting Period (hours)</Label>
-                  <Input
-                    id="votingHours"
-                    type="number"
-                    min="0"
-                    step="0.5"
-                    placeholder="e.g., 48 (for 2 days)"
-                    value={votingHours}
-                    onChange={(e) => setVotingHours(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Current closes: {formatDate(selectedPosition.votingCloses)}
-                  </p>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <Button variant="outline" onClick={closeExtendModal} disabled={extending !== null}>
-                  Cancel
-                </Button>
-                <Button onClick={handleExtendTime} disabled={extending !== null || (!nominationHours && !votingHours)}>
-                  {extending ? 'Extending...' : 'Extend Time'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 };

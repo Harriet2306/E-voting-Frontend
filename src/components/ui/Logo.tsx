@@ -1,93 +1,53 @@
 import React from 'react';
 
 interface LogoProps {
-  className?: string;
   size?: 'sm' | 'md' | 'lg';
   showText?: boolean;
+  className?: string;
 }
 
-const Logo: React.FC<LogoProps> = ({ className = '', size = 'md', showText = true }) => {
+const Logo: React.FC<LogoProps> = ({ size = 'md', showText = true, className = '' }) => {
   const sizeClasses = {
-    sm: 'h-8 w-8',
-    md: 'h-12 w-12',
-    lg: 'h-16 w-16',
+    sm: 'w-8 h-8',
+    md: 'w-12 h-12',
+    lg: 'w-16 h-16',
   };
 
   const textSizes = {
-    sm: 'text-sm',
-    md: 'text-lg',
-    lg: 'text-2xl',
+    sm: 'text-lg',
+    md: 'text-2xl',
+    lg: 'text-4xl',
   };
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      {/* Professional SVG Logo */}
-      <div className={`${sizeClasses[size]} flex-shrink-0`}>
-        <svg
-          viewBox="0 0 100 100"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full"
-        >
-          {/* Outer Circle - Voting Booth */}
-          <circle
-            cx="50"
-            cy="50"
-            r="45"
-            fill="url(#gradient1)"
-            stroke="url(#gradient2)"
-            strokeWidth="3"
-          />
-          {/* Inner Circle - Ballot Box */}
-          <circle
-            cx="50"
-            cy="50"
-            r="30"
-            fill="url(#gradient3)"
-            opacity="0.9"
-          />
-          {/* Checkmark - Vote Cast */}
-          <path
-            d="M35 50 L45 60 L65 40"
-            stroke="white"
-            strokeWidth="4"
+      {/* Original Logo Design - Scales/Justice Theme */}
+      <div className={`${sizeClasses[size]} relative flex items-center justify-center`}>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-secondary to-accent rounded-md transform rotate-12 opacity-90" />
+        <div className="relative w-full h-full bg-background rounded-md flex items-center justify-center border-2 border-primary/30">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            className="w-3/4 h-3/4 text-primary"
+            stroke="currentColor"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            fill="none"
-          />
-          {/* Gradient Definitions */}
-          <defs>
-            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#6366f1" />
-              <stop offset="100%" stopColor="#8b5cf6" />
-            </linearGradient>
-            <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#4f46e5" />
-              <stop offset="100%" stopColor="#7c3aed" />
-            </linearGradient>
-            <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#818cf8" />
-              <stop offset="100%" stopColor="#a78bfa" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-      
-      {/* Text */}
-      {showText && (
-        <div className="flex flex-col">
-          <span className={`${textSizes[size]} font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent leading-tight`}>
-            VoteSphere
-          </span>
-          <span className="text-xs text-muted-foreground leading-tight hidden sm:block">
-            Secure Digital Voting
-          </span>
+          >
+            {/* Scales of Justice */}
+            <path d="M12 2v20M8 6h8M6 10h12M4 14h16M2 18h20" />
+            <circle cx="12" cy="8" r="2" />
+            <circle cx="12" cy="16" r="2" />
+          </svg>
         </div>
+      </div>
+      {showText && (
+        <span className={`${textSizes[size]} font-bold tracking-tighter bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent`}>
+          FAIR CAST
+        </span>
       )}
     </div>
   );
 };
 
 export default Logo;
-
-

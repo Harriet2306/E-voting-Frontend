@@ -4,8 +4,9 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { candidatesAPI } from '../services/api';
 import NominationForm from '../components/candidates/NominationForm';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { getFileUrl } from '../lib/imageUtils';
+import DashboardLayout from '../components/layout/DashboardLayout';
 
 interface Nomination {
   id: string;
@@ -72,12 +73,6 @@ const CandidateDashboard: React.FC = () => {
     fetchNominations();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('welcomeMessage');
-    navigate('/login');
-  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -105,46 +100,30 @@ const CandidateDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-14 sm:h-16 items-center">
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white truncate">
-              Candidate Dashboard
-            </h1>
-            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-              <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 hidden sm:inline truncate max-w-[120px]">
-                {user.name || user.email}
-              </span>
-              <Button variant="outline" onClick={handleLogout} className="text-xs sm:text-sm px-2 sm:px-4">
-                <span className="hidden sm:inline">Logout</span>
-                <span className="sm:hidden">Out</span>
-              </Button>
+    <DashboardLayout
+      role="CANDIDATE"
+      title="Candidate Dashboard"
+      subtitle="Submit nominations and track your campaign"
+    >
+      {welcomeMessage && (
+        <div className="mb-6 p-4 bg-gradient-to-r from-primary to-primary-dark text-primary-foreground rounded-xl shadow-lg flex items-center justify-between animate-fade-in-up">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🎯</span>
+            <div>
+              <h3 className="text-lg font-bold">{welcomeMessage}</h3>
+              <p className="text-xs text-primary-foreground/80">Submit your nominations and track your campaign.</p>
             </div>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setWelcomeMessage(null)}
+            className="text-white hover:bg-white/20 rounded-full h-8 w-8 p-0"
+          >
+            ✕
+          </Button>
         </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {welcomeMessage && (
-          <div className="mb-6 p-4 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg shadow-lg flex items-center justify-between animate-in fade-in slide-in-from-top-5 duration-500">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">🎯</span>
-              <div>
-                <h3 className="text-xl font-bold">{welcomeMessage}</h3>
-                <p className="text-sm text-purple-100">Submit your nominations and track your campaign.</p>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setWelcomeMessage(null)}
-              className="text-white hover:bg-white/20"
-            >
-              ✕
-            </Button>
-          </div>
-        )}
+      )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <div className="space-y-6">
@@ -194,7 +173,7 @@ const CandidateDashboard: React.FC = () => {
                                 }}
                               />
                             ) : (
-                              <div className="w-20 h-20 rounded-lg border shadow-sm bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
+                              <div className="w-20 h-20 rounded-lg border shadow-sm bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center">
                                 <span className="text-2xl font-bold text-white">
                                   {nomination.name.charAt(0).toUpperCase()}
                                 </span>
@@ -213,24 +192,69 @@ const CandidateDashboard: React.FC = () => {
                               </div>
                               {getStatusBadge(nomination.status)}
                             </div>
-                        {nomination.reason && (
-                          <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded text-sm">
-                            <strong>Reason:</strong> {nomination.reason}
-                          </div>
-                        )}
-                        <div className="mt-2 text-xs text-muted-foreground">
-                          Submitted: {new Date(nomination.createdAt).toLocaleString()}
-                        </div>
-                            {nomination.manifestoUrl && (
-                              <a
-                                href={getFileUrl(nomination.manifestoUrl) || '#'}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="mt-2 inline-block text-sm text-blue-600 hover:underline"
-                              >
-                                View Manifesto
-                              </a>
+                            
+                            {/* Rejection Reason - Only show for rejected nominations */}
+                            {nomination.status === 'REJECTED' && nomination.reason && (
+                              <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-r-lg">
+                                <div className="flex items-start gap-2">
+                                  <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                  </svg>
+                                  <div className="flex-1">
+                                    <p className="text-sm font-semibold text-red-900 dark:text-red-200 mb-1">
+                                      Rejection Reason:
+                                    </p>
+                                    <p className="text-sm text-red-800 dark:text-red-300">
+                                      {nomination.reason}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
                             )}
+                            
+                            <div className="mt-2 text-xs text-muted-foreground">
+                              Submitted: {new Date(nomination.createdAt).toLocaleString()}
+                            </div>
+                            <div className="mt-3 flex gap-2">
+                              {nomination.manifestoUrl ? (
+                                <a
+                                  href={getFileUrl(nomination.manifestoUrl) || '#'}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-block px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                                >
+                                  View Manifesto
+                                </a>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    // Show upload manifesto form
+                                    const manifestoInput = document.createElement('input');
+                                    manifestoInput.type = 'file';
+                                    manifestoInput.accept = 'application/pdf';
+                                    manifestoInput.onchange = async (e) => {
+                                      const file = (e.target as HTMLInputElement).files?.[0];
+                                      if (file) {
+                                        const formData = new FormData();
+                                        formData.append('manifesto', file);
+                                        try {
+                                          await candidatesAPI.uploadManifesto(nomination.id, formData);
+                                          toast.success('Manifesto uploaded successfully!');
+                                          fetchNominations();
+                                        } catch (err) {
+                                          toast.error('Failed to upload manifesto');
+                                        }
+                                      }
+                                    };
+                                    manifestoInput.click();
+                                  }}
+                                >
+                                  📄 Upload Manifesto
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -252,8 +276,7 @@ const CandidateDashboard: React.FC = () => {
             )}
           </div>
         </div>
-      </main>
-    </div>
+    </DashboardLayout>
   );
 };
 

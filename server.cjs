@@ -37,9 +37,9 @@ app.use((req, res, next) => {
 const PORT = process.env.PORT || 3063;
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 VoteSphere Frontend running on port ${PORT}`);
+  console.log(`🚀 FAIR CAST Frontend running on port ${PORT}`);
   console.log(`📁 Serving files from: ${path.join(__dirname, 'dist')}`);
-  console.log(`🌐 Access at: http://64.23.169.136:${PORT}`);
+  console.log(`🌐 Access at: http://localhost:${PORT}`);
 });
 
 

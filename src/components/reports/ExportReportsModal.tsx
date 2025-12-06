@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { reportsAPI } from '../../services/api';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 interface ExportReportsModalProps {
   isOpen: boolean;

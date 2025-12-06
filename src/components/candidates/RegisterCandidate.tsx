@@ -8,7 +8,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -39,9 +39,27 @@ const RegisterCandidate: React.FC = () => {
     setLoading(true);
 
     try {
+      // Register the candidate
       await authAPI.register(data);
-      toast.success('Registration successful! Please log in.');
-      navigate('/candidate/login', { replace: true });
+      
+      // Automatically login after registration
+      const loginResponse = await authAPI.login(data.email, data.password);
+      
+      // Store token and user info
+      localStorage.setItem('token', loginResponse.token);
+      localStorage.setItem('user', JSON.stringify(loginResponse.user));
+
+      // Show welcome message
+      const userName = loginResponse.user.name || data.email.split('@')[0];
+      localStorage.setItem('welcomeMessage', JSON.stringify({
+        message: `Welcome, ${userName}! 🎯 Your account is ready.`,
+        timestamp: Date.now()
+      }));
+
+      toast.success('Registration successful! Welcome to your dashboard.');
+      
+      // Redirect to candidate dashboard
+      navigate('/candidate/dashboard', { replace: true });
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || 'Registration failed. Please try again.';
       setError(errorMessage);
@@ -57,7 +75,7 @@ const RegisterCandidate: React.FC = () => {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-primary/30 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
       </div>
       
       <div className="flex items-center justify-center min-h-screen py-12 px-4 relative z-10">
@@ -216,7 +234,7 @@ const RegisterCandidate: React.FC = () => {
               <p className="text-sm text-gray-600">
                 Already have an account?{' '}
                 <Link
-                  to="/candidate/login"
+                  to="/login"
                   className="text-purple-600 hover:text-purple-700 font-bold hover:underline transition-all duration-200 inline-block hover:scale-105"
                 >
                   Sign in

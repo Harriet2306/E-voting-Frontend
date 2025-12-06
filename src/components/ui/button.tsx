@@ -12,20 +12,20 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         className={cn(
-          "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+          "inline-flex items-center justify-center font-semibold ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed",
           {
-            "bg-primary text-primary-foreground hover:bg-primary/90": variant === "default",
-            "bg-destructive text-destructive-foreground hover:bg-destructive/90": variant === "destructive",
-            "border border-input bg-white dark:bg-gray-900 hover:bg-slate-50 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-slate-100": variant === "outline",
-            "bg-secondary text-secondary-foreground hover:bg-secondary/80": variant === "secondary",
-            "hover:bg-accent hover:text-accent-foreground": variant === "ghost",
+            "bg-primary text-primary-foreground hover:bg-primary-dark shadow-lg shadow-primary/30 hover:shadow-primary/50 active:scale-95": variant === "default",
+            "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-lg shadow-destructive/30": variant === "destructive",
+            "border-2 border-primary bg-transparent text-primary hover:bg-primary-light hover:border-primary-dark active:scale-95": variant === "outline",
+            "bg-secondary text-secondary-foreground hover:bg-secondary-dark shadow-lg shadow-secondary/30": variant === "secondary",
+            "hover:bg-muted hover:text-foreground text-muted-foreground": variant === "ghost",
             "text-primary underline-offset-4 hover:underline": variant === "link",
           },
           {
-            "h-12 px-6 py-3 rounded-xl": size === "default",
-            "h-9 rounded-lg px-3": size === "sm",
-            "h-14 rounded-xl px-8 text-base": size === "lg",
-            "h-10 w-10 rounded-lg": size === "icon",
+            "h-12 px-6 rounded-md text-base": size === "default",
+            "h-9 rounded-md px-4 text-sm": size === "sm",
+            "h-14 rounded-md px-8 text-lg": size === "lg",
+            "h-10 w-10 rounded-md": size === "icon",
           },
           className
         )}

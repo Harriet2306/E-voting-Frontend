@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { candidatesAPI } from '../../services/api';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { getFileUrl } from '../../lib/imageUtils';
 
 interface Candidate {
@@ -227,7 +227,7 @@ const CandidatesListModal: React.FC<CandidatesListModalProps> = ({
                             }}
                           />
                         ) : (
-                          <div className="w-20 h-20 rounded-lg border shadow-sm bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
+                          <div className="w-20 h-20 rounded-lg border shadow-sm bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center">
                             <span className="text-2xl font-bold text-white">
                               {candidate.name.charAt(0).toUpperCase()}
                             </span>

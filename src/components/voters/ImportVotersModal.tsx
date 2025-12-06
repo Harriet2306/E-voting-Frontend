@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { votersAPI } from '../../services/api';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 interface ImportVotersModalProps {
   isOpen: boolean;
@@ -121,7 +121,7 @@ const ImportVotersModal: React.FC<ImportVotersModalProps> = ({ isOpen, onClose, 
         <CardHeader>
           <CardTitle>Import Eligible Voters</CardTitle>
           <CardDescription>
-            Upload a CSV file with voter information. The CSV must include: reg_no, name, email, phone, program. Both email and phone are required for OTP delivery.
+            Upload a CSV file with voter information. The CSV must include: reg_no, name, email, phone, program. Email is required for OTP delivery.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -149,7 +149,7 @@ S21B13/001,John Doe,john@organization.com,+256701234567,Computer Science
 S21B13/002,Jane Smith,jane@organization.com,+256701234568,Information Systems`}
             </pre>
             <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
-              ⚠️ <strong>Required:</strong> Both email and phone are mandatory. Phone numbers should be in international format (e.g., +256701234567) or local format (0701234567).
+              ⚠️ <strong>Required:</strong> Email is mandatory for OTP verification. Phone is optional.
             </p>
           </div>
         </div>

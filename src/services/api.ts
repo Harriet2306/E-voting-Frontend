@@ -1,36 +1,16 @@
 import axios from 'axios';
 
-// API Base URL - Auto-detect production or use environment variable
-// Defaults to production URL for VPS deployment
+// API Base URL - Use localhost for development
 function getApiBaseUrl(): string {
   if (import.meta.env.VITE_API_URL) {
     console.log('[api.ts] Using VITE_API_URL:', import.meta.env.VITE_API_URL);
     return import.meta.env.VITE_API_URL;
   }
   
-  // Auto-detect: If frontend is on production server, use production backend
-  if (typeof window !== 'undefined' && window.location) {
-    const currentHost = window.location.hostname;
-    
-    // Check for production server IP
-    if (currentHost === '64.23.169.136' || currentHost.includes('64.23.169.136')) {
-      const prodUrl = 'http://64.23.169.136:5656/api';
-      console.log('[api.ts] Production detected, using:', prodUrl);
-      return prodUrl;
-    }
-    
-    // Check if running on localhost
-    if (currentHost === 'localhost' || currentHost === '127.0.0.1' || currentHost.startsWith('192.168.') || currentHost.startsWith('10.')) {
-      const localUrl = 'http://localhost:5656/api';
-      console.log('[api.ts] Local development detected, using:', localUrl);
-      return localUrl;
-    }
-  }
-  
-  // Default to production for safety (when deployed)
-  const defaultUrl = 'http://64.23.169.136:5656/api';
-  console.log('[api.ts] Using default production URL:', defaultUrl);
-  return defaultUrl;
+  // Default to localhost
+  const localUrl = 'http://localhost:5000/api';
+  console.log('[api.ts] Using localhost:', localUrl);
+  return localUrl;
 }
 
 const API_BASE_URL = getApiBaseUrl();
@@ -89,7 +69,7 @@ api.interceptors.response.use(
       if (errorMessage.includes('Invalid or inactive user') || errorMessage.includes('Invalid token') || errorMessage.includes('Token expired')) {
         // Redirect to login with message
         setTimeout(() => {
-          window.location.href = '/admin/login';
+          window.location.href = '/login';
         }, 100);
         return Promise.reject(new Error('Your session has expired. Please log in again.'));
       }
@@ -102,7 +82,7 @@ api.interceptors.response.use(
       
       // For other 401 errors, redirect to login
       setTimeout(() => {
-        window.location.href = '/admin/login';
+        window.location.href = '/login';
       }, 100);
     }
     return Promise.reject(error);
@@ -179,6 +159,14 @@ export const candidatesAPI = {
   },
   submitNomination: async (formData: FormData) => {
     const response = await api.post('/candidates', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+  uploadManifesto: async (candidateId: string, formData: FormData) => {
+    const response = await api.patch(`/candidates/${candidateId}/manifesto`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

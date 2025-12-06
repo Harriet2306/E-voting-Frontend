@@ -12,7 +12,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
   const userStr = localStorage.getItem('user');
   
   if (!token || !userStr) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   try {
@@ -26,7 +26,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
       // For admins, redirect to login
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      return <Navigate to="/admin/login" replace />;
+      return <Navigate to="/login" replace />;
     }
 
     // Check role authorization
@@ -40,7 +40,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
         return <Navigate to="/candidate/dashboard" replace />;
       }
       // Fallback to login
-      return <Navigate to="/admin/login" replace />;
+      return <Navigate to="/login" replace />;
     }
 
     return <>{children}</>;
@@ -48,7 +48,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
     // If user data is invalid, clear and redirect to login
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to="/login" replace />;
   }
 };
 

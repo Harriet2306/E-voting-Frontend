@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { candidatesAPI } from '../services/api';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { getFileUrl } from '../lib/imageUtils';
+import DashboardLayout from '../components/layout/DashboardLayout';
 
 interface Nomination {
   id: string;
@@ -47,7 +48,7 @@ const OfficerDashboard: React.FC = () => {
         // ProtectedRoute should handle this, but double-check here
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        navigate('/admin/login');
+        navigate('/login');
         toast.error('Your account has been deactivated. Please contact the administrator.');
         return;
       }
@@ -139,12 +140,6 @@ const OfficerDashboard: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('welcomeMessage');
-    navigate('/login');
-  };
 
   const pendingNominations = nominations.filter((n) => n.status === 'SUBMITTED');
   const approvedNominations = nominations.filter((n) => n.status === 'APPROVED');
@@ -176,47 +171,32 @@ const OfficerDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Returning Officer Dashboard
-            </h1>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600 dark:text-gray-300">
-                {user.name || user.email}
-              </span>
-              <Button variant="outline" onClick={handleLogout}>
-                Logout
-              </Button>
+    <DashboardLayout
+      role="OFFICER"
+      title="Returning Officer Dashboard"
+      subtitle="Review and manage candidate nominations"
+    >
+      {welcomeMessage && (
+        <div className="mb-6 p-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg flex items-center justify-between animate-fade-in-up">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📋</span>
+            <div>
+              <h3 className="text-lg font-bold">{welcomeMessage}</h3>
+              <p className="text-xs text-green-100">Review and manage candidate nominations.</p>
             </div>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setWelcomeMessage(null)}
+            className="text-white hover:bg-white/20 rounded-full h-8 w-8 p-0"
+          >
+            ✕
+          </Button>
         </div>
-      </nav>
+      )}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {welcomeMessage && (
-          <div className="mb-6 p-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg shadow-lg flex items-center justify-between animate-in fade-in slide-in-from-top-5 duration-500">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">📋</span>
-              <div>
-                <h3 className="text-xl font-bold">{welcomeMessage}</h3>
-                <p className="text-sm text-green-100">Review and manage candidate nominations.</p>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setWelcomeMessage(null)}
-              className="text-white hover:bg-white/20"
-            >
-              ✕
-            </Button>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Pending</CardTitle>
@@ -368,10 +348,9 @@ const OfficerDashboard: React.FC = () => {
                                 ✗ Reject
                               </Button>
                             ) : (
-                              <div className="flex-1 flex gap-2">
-                                <input
-                                  type="text"
-                                  placeholder="Enter rejection reason..."
+                              <div className="flex-1 space-y-2">
+                                <textarea
+                                  placeholder="Enter rejection reason (required)..."
                                   value={rejectReason[nomination.id] || ''}
                                   onChange={(e) =>
                                     setRejectReason({
@@ -379,29 +358,29 @@ const OfficerDashboard: React.FC = () => {
                                       [nomination.id]: e.target.value,
                                     })
                                   }
-                                  className="flex-1 px-3 py-2 border rounded-md text-sm"
-                                  onKeyPress={(e) => {
-                                    if (e.key === 'Enter') {
-                                      handleReject(nomination.id);
-                                    }
-                                  }}
+                                  className="w-full px-3 py-2 border rounded-md text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                  rows={3}
+                                  required
                                 />
-                                <Button
-                                  variant="destructive"
-                                  onClick={() => handleReject(nomination.id)}
-                                  disabled={processing === nomination.id || !rejectReason[nomination.id]?.trim()}
-                                >
-                                  {processing === nomination.id ? 'Processing...' : 'Submit'}
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  onClick={() => {
-                                    setShowRejectForm(null);
-                                    setRejectReason({ ...rejectReason, [nomination.id]: '' });
-                                  }}
-                                >
-                                  Cancel
-                                </Button>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="destructive"
+                                    onClick={() => handleReject(nomination.id)}
+                                    disabled={processing === nomination.id || !rejectReason[nomination.id]?.trim()}
+                                  >
+                                    {processing === nomination.id ? 'Processing...' : 'Submit Rejection'}
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                      setShowRejectForm(null);
+                                      setRejectReason({ ...rejectReason, [nomination.id]: '' });
+                                    }}
+                                    disabled={processing === nomination.id}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -473,8 +452,7 @@ const OfficerDashboard: React.FC = () => {
             </CardContent>
           </Card>
         )}
-      </main>
-    </div>
+    </DashboardLayout>
   );
 };
 

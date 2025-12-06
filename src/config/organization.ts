@@ -4,7 +4,7 @@ export const organizationConfig = {
   name: import.meta.env.VITE_ORG_NAME || 'Your Organization',
   shortName: import.meta.env.VITE_ORG_SHORT_NAME || 'Organization',
   emailDomain: import.meta.env.VITE_ORG_EMAIL_DOMAIN || 'organization.com',
-  systemName: 'VoteSphere',
+  systemName: 'FAIR CAST',
   copyrightYear: new Date().getFullYear(),
 };
 

@@ -6,7 +6,7 @@ const AccountDeactivated: React.FC = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.href = '/admin/login';
+    window.location.href = '/login';
   };
 
   return (
@@ -53,6 +53,8 @@ const AccountDeactivated: React.FC = () => {
 };
 
 export default AccountDeactivated;
+
+
 
 
 

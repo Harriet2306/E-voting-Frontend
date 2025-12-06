@@ -7,16 +7,13 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { formatDate } from '../../lib/utils';
 
 const nominationSchema = z.object({
   positionId: z.string().min(1, 'Please select a position'),
-  manifesto: z.instanceof(FileList).refine(
-    (files) => files.length > 0,
-    'Manifesto PDF is required'
-  ).refine(
-    (files) => files[0]?.type === 'application/pdf',
+  manifesto: z.instanceof(FileList).optional().refine(
+    (files) => !files || files.length === 0 || files[0]?.type === 'application/pdf',
     'Manifesto must be a PDF file'
   ),
   photo: z.instanceof(FileList).refine(
@@ -100,11 +97,14 @@ const NominationForm: React.FC<NominationFormProps> = ({ onSuccess }) => {
     try {
       const formData = new FormData();
       formData.append('positionId', data.positionId);
-      formData.append('manifesto', data.manifesto[0]);
+      // Only add manifesto if provided
+      if (data.manifesto && data.manifesto.length > 0) {
+        formData.append('manifesto', data.manifesto[0]);
+      }
       formData.append('photo', data.photo[0]);
 
       await candidatesAPI.submitNomination(formData);
-      toast.success('Nomination submitted successfully!');
+      toast.success('Nomination submitted successfully! You can upload manifesto later.');
       reset();
       if (onSuccess) {
         onSuccess();
@@ -283,7 +283,7 @@ const NominationForm: React.FC<NominationFormProps> = ({ onSuccess }) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="manifesto">Manifesto (PDF) *</Label>
+            <Label htmlFor="manifesto">Manifesto (PDF) <span className="text-gray-400">(Optional - can upload later)</span></Label>
             <Input
               id="manifesto"
               type="file"
@@ -295,7 +295,7 @@ const NominationForm: React.FC<NominationFormProps> = ({ onSuccess }) => {
               <p className="text-sm text-red-600">{errors.manifesto.message}</p>
             )}
             <p className="text-xs text-muted-foreground">
-              Upload your manifesto as a PDF file (max 10MB)
+              Upload your manifesto as a PDF file (max 10MB). You can add this after submitting your nomination.
             </p>
           </div>
 

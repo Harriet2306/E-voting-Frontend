@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { reportsAPI } from '../../services/api';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 interface AuditLog {
   id: string;
@@ -66,9 +66,9 @@ const AuditLogModal: React.FC<AuditLogModalProps> = ({ isOpen, onClose }) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <Card className="w-full max-w-[900px] max-h-[90vh] overflow-y-auto">
         <CardHeader>
-          <CardTitle>Audit Log</CardTitle>
+          <CardTitle>System Activity Log</CardTitle>
           <CardDescription>
-            View all system activities and changes. This log is immutable and append-only.
+            Complete history of all administrative actions and system events
           </CardDescription>
         </CardHeader>
         <CardContent>

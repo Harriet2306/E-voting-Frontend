@@ -11,8 +11,8 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3063,
-    // Production backend is used directly - no proxy needed
+    port: 3000,
+    // Localhost backend is used directly - no proxy needed
   },
   build: {
     // Optimize chunk splitting
