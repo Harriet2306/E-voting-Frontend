@@ -1,3 +1,4 @@
+// Authored by: Isaac Newton
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -41,10 +42,10 @@ const RegisterCandidate: React.FC = () => {
     try {
       // Register the candidate
       await authAPI.register(data);
-      
+
       // Automatically login after registration
       const loginResponse = await authAPI.login(data.email, data.password);
-      
+
       // Store token and user info
       localStorage.setItem('token', loginResponse.token);
       localStorage.setItem('user', JSON.stringify(loginResponse.user));
@@ -57,7 +58,7 @@ const RegisterCandidate: React.FC = () => {
       }));
 
       toast.success('Registration successful! Welcome to your dashboard.');
-      
+
       // Redirect to candidate dashboard
       navigate('/candidate/dashboard', { replace: true });
     } catch (err: any) {
@@ -77,7 +78,7 @@ const RegisterCandidate: React.FC = () => {
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style={{ animationDelay: '1s' }}></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-primary/30 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
       </div>
-      
+
       <div className="flex items-center justify-center min-h-screen py-12 px-4 relative z-10">
         <Card className="w-full max-w-md shadow-2xl border-2 border-purple-200/50 bg-white/95 backdrop-blur-sm rounded-3xl animate-bounce-in transform transition-all duration-300 hover:shadow-purple-500/20 hover:scale-[1.02]">
           <CardHeader className="space-y-3 text-center pb-6">
@@ -108,9 +109,8 @@ const RegisterCandidate: React.FC = () => {
                   type="text"
                   placeholder="John Doe"
                   {...register('name')}
-                  className={`h-12 rounded-xl border-2 transition-all duration-300 focus:scale-[1.02] focus:border-purple-500 focus:ring-4 focus:ring-purple-200 ${
-                    errors.name ? 'border-red-500 focus:ring-red-200 animate-wiggle' : 'border-gray-200 hover:border-purple-300'
-                  }`}
+                  className={`h-12 rounded-xl border-2 transition-all duration-300 focus:scale-[1.02] focus:border-purple-500 focus:ring-4 focus:ring-purple-200 ${errors.name ? 'border-red-500 focus:ring-red-200 animate-wiggle' : 'border-gray-200 hover:border-purple-300'
+                    }`}
                   aria-invalid={errors.name ? 'true' : 'false'}
                   aria-describedby={errors.name ? 'name-error' : undefined}
                 />
@@ -126,9 +126,8 @@ const RegisterCandidate: React.FC = () => {
                   type="email"
                   placeholder="student@organization.com"
                   {...register('email')}
-                  className={`h-12 rounded-xl border-2 transition-all duration-300 focus:scale-[1.02] focus:border-purple-500 focus:ring-4 focus:ring-purple-200 ${
-                    errors.email ? 'border-red-500 focus:ring-red-200 animate-wiggle' : 'border-gray-200 hover:border-purple-300'
-                  }`}
+                  className={`h-12 rounded-xl border-2 transition-all duration-300 focus:scale-[1.02] focus:border-purple-500 focus:ring-4 focus:ring-purple-200 ${errors.email ? 'border-red-500 focus:ring-red-200 animate-wiggle' : 'border-gray-200 hover:border-purple-300'
+                    }`}
                   aria-invalid={errors.email ? 'true' : 'false'}
                   aria-describedby={errors.email ? 'email-error' : undefined}
                 />
@@ -144,9 +143,8 @@ const RegisterCandidate: React.FC = () => {
                   type="text"
                   placeholder="S21B13/001"
                   {...register('regNo')}
-                  className={`h-12 rounded-xl border-2 transition-all duration-300 focus:scale-[1.02] focus:border-purple-500 focus:ring-4 focus:ring-purple-200 ${
-                    errors.regNo ? 'border-red-500 focus:ring-red-200 animate-wiggle' : 'border-gray-200 hover:border-purple-300'
-                  }`}
+                  className={`h-12 rounded-xl border-2 transition-all duration-300 focus:scale-[1.02] focus:border-purple-500 focus:ring-4 focus:ring-purple-200 ${errors.regNo ? 'border-red-500 focus:ring-red-200 animate-wiggle' : 'border-gray-200 hover:border-purple-300'
+                    }`}
                   aria-invalid={errors.regNo ? 'true' : 'false'}
                   aria-describedby={errors.regNo ? 'regNo-error' : undefined}
                 />
@@ -162,9 +160,8 @@ const RegisterCandidate: React.FC = () => {
                   type="text"
                   placeholder="Bachelor of Science in Computer Science"
                   {...register('program')}
-                  className={`h-12 rounded-xl border-2 transition-all duration-300 focus:scale-[1.02] focus:border-purple-500 focus:ring-4 focus:ring-purple-200 ${
-                    errors.program ? 'border-red-500 focus:ring-red-200 animate-wiggle' : 'border-gray-200 hover:border-purple-300'
-                  }`}
+                  className={`h-12 rounded-xl border-2 transition-all duration-300 focus:scale-[1.02] focus:border-purple-500 focus:ring-4 focus:ring-purple-200 ${errors.program ? 'border-red-500 focus:ring-red-200 animate-wiggle' : 'border-gray-200 hover:border-purple-300'
+                    }`}
                   aria-invalid={errors.program ? 'true' : 'false'}
                   aria-describedby={errors.program ? 'program-error' : undefined}
                 />
@@ -181,9 +178,8 @@ const RegisterCandidate: React.FC = () => {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Enter your password"
                     {...register('password')}
-                    className={`h-12 rounded-xl pr-12 border-2 transition-all duration-300 focus:scale-[1.02] focus:border-purple-500 focus:ring-4 focus:ring-purple-200 ${
-                      errors.password ? 'border-red-500 focus:ring-red-200 animate-wiggle' : 'border-gray-200 hover:border-purple-300'
-                    }`}
+                    className={`h-12 rounded-xl pr-12 border-2 transition-all duration-300 focus:scale-[1.02] focus:border-purple-500 focus:ring-4 focus:ring-purple-200 ${errors.password ? 'border-red-500 focus:ring-red-200 animate-wiggle' : 'border-gray-200 hover:border-purple-300'
+                      }`}
                     aria-invalid={errors.password ? 'true' : 'false'}
                     aria-describedby={errors.password ? 'password-error' : undefined}
                   />
