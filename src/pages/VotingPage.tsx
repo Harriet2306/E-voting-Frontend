@@ -1,3 +1,4 @@
+// Authored by: Treasure Kirabo
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '../components/ui/button';
@@ -44,7 +45,7 @@ const VotingPage: React.FC = () => {
 
   useEffect(() => {
     const token = location.state?.ballotToken || localStorage.getItem('ballotToken');
-    
+
     if (!token) {
       toast.error('No ballot token found. Please verify your identity first.');
       navigate('/verify');
@@ -63,7 +64,7 @@ const VotingPage: React.FC = () => {
         positions: ballotResponse.positions || [],
         candidates: ballotResponse.candidates || [],
       });
-      
+
       if (ballotResponse.positions?.length > 0 && ballotResponse.candidates?.length === 0) {
         toast.error('No approved candidates available for voting yet.', { duration: 5000 });
       }
@@ -88,7 +89,7 @@ const VotingPage: React.FC = () => {
       setVotes(newVotes);
       return;
     }
-    
+
     setVotes({
       ...votes,
       [positionId]: candidateId,
@@ -124,7 +125,7 @@ const VotingPage: React.FC = () => {
       await votesAPI.castVote(ballotToken, voteData);
       toast.success('Vote cast successfully! Thank you for voting.');
       localStorage.removeItem('ballotToken');
-      
+
       setTimeout(() => {
         navigate('/verify', { state: { message: 'Your vote has been recorded. Thank you!' } });
       }, 2000);
@@ -179,8 +180,8 @@ const VotingPage: React.FC = () => {
             </div>
             <h2 className="text-2xl font-bold text-foreground mb-2">No Active Elections</h2>
             <p className="text-muted-foreground mb-6">There are no positions currently open for voting.</p>
-            <Button 
-              onClick={() => navigate('/verify')} 
+            <Button
+              onClick={() => navigate('/verify')}
             >
               Back to Verification
             </Button>
@@ -264,31 +265,28 @@ const VotingPage: React.FC = () => {
               const isActive = index === currentStep;
               const isVoted = !!votes[position.id];
               const isCompleted = index < currentStep;
-              
+
               return (
                 <button
                   key={position.id}
                   onClick={() => setCurrentStep(index)}
-                  className={`flex-shrink-0 flex flex-col items-center gap-2 min-w-[80px] transition-all ${
-                    isActive ? 'scale-110' : 'opacity-60 hover:opacity-100'
-                  }`}
+                  className={`flex-shrink-0 flex flex-col items-center gap-2 min-w-[80px] transition-all ${isActive ? 'scale-110' : 'opacity-60 hover:opacity-100'
+                    }`}
                 >
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
-                      isActive
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${isActive
                         ? 'bg-primary text-primary-foreground ring-4 ring-primary-light'
                         : isVoted
-                        ? 'bg-primary-light text-primary-dark'
-                        : isCompleted
-                        ? 'bg-muted text-muted-foreground'
-                        : 'bg-surface border-2 border-card-stroke text-disabled'
-                    }`}
+                          ? 'bg-primary-light text-primary-dark'
+                          : isCompleted
+                            ? 'bg-muted text-muted-foreground'
+                            : 'bg-surface border-2 border-card-stroke text-disabled'
+                      }`}
                   >
                     {isVoted ? '✓' : index + 1}
                   </div>
-                  <p className={`text-xs font-medium text-center ${
-                    isActive ? 'text-primary' : 'text-muted-foreground'
-                  }`}>
+                  <p className={`text-xs font-medium text-center ${isActive ? 'text-primary' : 'text-muted-foreground'
+                    }`}>
                     {position.name.split(' ')[0]}
                   </p>
                 </button>
@@ -321,16 +319,15 @@ const VotingPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 {positionCandidates.map((candidate) => {
                   const isSelected = votes[currentPosition.id] === candidate.id;
-                  
+
                   return (
                     <button
                       key={candidate.id}
                       onClick={() => handleVoteChange(currentPosition.id, candidate.id)}
-                      className={`relative p-6 rounded-2xl border-2 transition-all text-left ${
-                        isSelected
+                      className={`relative p-6 rounded-2xl border-2 transition-all text-left ${isSelected
                           ? 'border-primary bg-primary-light shadow-lg scale-[1.02]'
                           : 'border-card-stroke bg-surface hover:border-primary/50 hover:shadow-md'
-                      }`}
+                        }`}
                     >
                       {isSelected && (
                         <div className="absolute top-4 right-4 w-8 h-8 bg-primary rounded-full flex items-center justify-center">
@@ -339,7 +336,7 @@ const VotingPage: React.FC = () => {
                           </svg>
                         </div>
                       )}
-                      
+
                       <div className="flex items-center gap-4">
                         {candidate.photoUrl ? (
                           <img
@@ -356,9 +353,8 @@ const VotingPage: React.FC = () => {
                           </div>
                         )}
                         <div className="flex-1">
-                          <h3 className={`font-bold text-lg mb-1 ${
-                            isSelected ? 'text-primary-dark' : 'text-foreground'
-                          }`}>
+                          <h3 className={`font-bold text-lg mb-1 ${isSelected ? 'text-primary-dark' : 'text-foreground'
+                            }`}>
                             {candidate.name}
                           </h3>
                           <p className="text-sm text-muted-foreground">{candidate.program}</p>
@@ -380,7 +376,7 @@ const VotingPage: React.FC = () => {
               >
                 Previous
               </Button>
-              
+
               {currentStep < totalPositions - 1 ? (
                 <Button
                   onClick={handleNext}
@@ -393,11 +389,10 @@ const VotingPage: React.FC = () => {
                 <Button
                   onClick={handleSubmit}
                   disabled={submitting || votedCount !== totalPositions}
-                  className={`${
-                    votedCount === totalPositions
+                  className={`${votedCount === totalPositions
                       ? ''
                       : 'bg-disabled text-disabled cursor-not-allowed'
-                  }`}
+                    }`}
                 >
                   {submitting ? 'Submitting...' : 'Submit Vote'}
                 </Button>
